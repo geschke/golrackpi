@@ -5,6 +5,7 @@ import (
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/hmac"
+	"errors"
 
 	"crypto/sha256"
 	b64 "encoding/base64"
@@ -14,7 +15,6 @@ import (
 	"io/ioutil"
 
 	"net/http"
-	"os"
 )
 
 type AuthStartRequestType struct {
@@ -34,7 +34,7 @@ type AuthCreateSessionType struct {
 	Payload       string `json:"payload"`
 }
 
-func Login(userPassword string) string {
+func Login(userPassword string) (string, error) {
 
 	randomString := helper.RandSeq(12)
 	//randomString = "LbdaaizCLejX"
@@ -64,7 +64,8 @@ func Login(userPassword string) string {
 
 	// An error is returned if something goes wrong
 	if err != nil {
-		panic(err)
+		//panic(err)
+		return "", errors.New("could not initiate authentication")
 	}
 	//Need to close the response stream, once response is read.
 	//Hence defer close. It will automatically take care of it.
@@ -75,7 +76,8 @@ func Login(userPassword string) string {
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//Failed to read response.
-		panic(err)
+		return "", errors.New("could not read authentication response")
+		//panic(err)
 	}
 
 	//Convert bytes to String and print
@@ -160,7 +162,8 @@ func Login(userPassword string) string {
 
 	// An error is returned if something goes wrong
 	if errFinish != nil {
-		panic(errFinish)
+		//panic(errFinish)
+		return "", errors.New("could not initiate authentication finish request")
 	}
 	//Need to close the response stream, once response is read.
 	//Hence defer close. It will automatically take care of it.
@@ -171,7 +174,8 @@ func Login(userPassword string) string {
 	responseFinishBody, errFinishBody := ioutil.ReadAll(respFinish.Body)
 	if errFinishBody != nil {
 		//Failed to read response.
-		panic(errFinishBody)
+		return "", errors.New("could not read from authentication finish request")
+		//panic(errFinishBody)
 	}
 
 	//Convert bytes to String and print
@@ -198,7 +202,8 @@ func Login(userPassword string) string {
 
 	if cmpBytes != 0 {
 		fmt.Println("signature and serverSignature are not equal!")
-		os.Exit(1)
+		return "", errors.New("signature check error")
+		//os.Exit(1)
 
 	}
 
@@ -218,7 +223,8 @@ func Login(userPassword string) string {
 
 	block, err := aes.NewCipher(protocolKey)
 	if err != nil {
-		panic(err.Error())
+		return "", errors.New("cipher creation error " + err.Error())
+		//panic(err.Error())
 	}
 
 	//aesgcm, err := cipher.NewGCM(block)
@@ -226,7 +232,8 @@ func Login(userPassword string) string {
 	// default tag size in Go is 16
 	aesgcm, err := cipher.NewGCMWithNonceSize(block, 16)
 	if err != nil {
-		panic(err.Error())
+		//panic(err.Error())
+		return "", errors.New("cipher error " + err.Error())
 	}
 
 	ns := aesgcm.NonceSize()
@@ -260,7 +267,8 @@ func Login(userPassword string) string {
 
 	// An error is returned if something goes wrong
 	if errCreateSession != nil {
-		panic(errCreateSession)
+		return "", errors.New("could not create session")
+		//panic(errCreateSession)
 	}
 	//Need to close the response stream, once response is read.
 	//Hence defer close. It will automatically take care of it.
@@ -271,7 +279,8 @@ func Login(userPassword string) string {
 	responseCreateSessionBody, errCreateSessionBody := ioutil.ReadAll(respCreateSession.Body)
 	if errCreateSessionBody != nil {
 		//Failed to read response.
-		panic(errCreateSessionBody)
+		//panic(errCreateSessionBody)
+		return "", errors.New("could not read from create session request")
 	}
 
 	//Convert bytes to String and print
@@ -285,8 +294,15 @@ func Login(userPassword string) string {
 	fmt.Println(resultCreateSession)
 	sessionId := resultCreateSession["sessionId"].(string)
 
+	return sessionId, nil
+
 	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
 
+	//return "ok", nil
+	//return "ok", errors.New("test error")
+}
+
+func Request(sessionId string) {
 	client := http.Client{}
 
 	request, err := http.NewRequest("GET", "http://192.168.10.250/api/v1/auth/me", nil)
@@ -305,5 +321,4 @@ func Login(userPassword string) string {
 	json.NewDecoder(respMe.Body).Decode(&resultMe)
 	fmt.Println(resultMe)
 
-	return "ok"
 }
