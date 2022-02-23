@@ -5,9 +5,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
-	"fmt"
-	"golang.org/x/crypto/pbkdf2"
+
 	mrand "math/rand"
+
+	"golang.org/x/crypto/pbkdf2"
 
 	"time"
 )
@@ -27,10 +28,10 @@ func RandSeq(n int) string {
 }
 
 func GetPBKDF2Hash(password string, salt string, rounds int) []byte {
-	fmt.Println("in getPBKDF2Hash")
+	//fmt.Println("in getPBKDF2Hash")
 	// key length 32 for SHA256
 	tmp := pbkdf2.Key([]byte(password), []byte(salt), rounds, 32, sha256.New)
-	fmt.Println("hash ist:", tmp)
+	//fmt.Println("hash ist:", tmp)
 	return tmp
 }
 
@@ -43,7 +44,7 @@ func GetHMACSHA256(secret []byte, valueToEncrypt string) []byte {
 	// Write Data to it
 	h.Write([]byte(valueToEncrypt))
 	mac := h.Sum(nil)
-	fmt.Println("MAC:", mac)
+	//fmt.Println("MAC:", mac)
 	return mac
 }
 
@@ -56,14 +57,14 @@ func CreateClientProof(clientSignature []byte, serverSignature []byte) string {
 	clientSignatureLength := len(clientSignature)
 	//var result [clientSignatureLength]byte
 	result := make([]byte, clientSignatureLength)
-	fmt.Println("clientSignature:", clientSignature)
-	fmt.Println("serverSignature:", serverSignature)
-	fmt.Println("Length clientSignature", len(clientSignature))
+	//fmt.Println("clientSignature:", clientSignature)
+	//fmt.Println("serverSignature:", serverSignature)
+	//fmt.Println("Length clientSignature", len(clientSignature))
 	//result = new byte[clientSignature.length];
 	for i := 0; i < len(clientSignature); i++ {
 		result[i] = (byte(0xff & (clientSignature[i] ^ serverSignature[i])))
 	}
-	fmt.Println("result:", result)
+	//fmt.Println("result:", result)
 
 	return b64.StdEncoding.EncodeToString(result)
 

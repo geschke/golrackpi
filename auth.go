@@ -17,6 +17,10 @@ import (
 	"net/http"
 )
 
+const endpointAuthStart string = "/api/v1/auth/start"
+const endpointAuthFinish string = "/api/v1/auth/finish"
+const endpointAuthCreateSession string = "/api/v1/auth/create_session"
+
 type AuthStartRequestType struct {
 	Nonce    string `json:"nonce"`
 	Username string `json:"username"`
@@ -34,7 +38,41 @@ type AuthCreateSessionType struct {
 	Payload       string `json:"payload"`
 }
 
-func Login(userPassword string) (string, error) {
+type authClient struct {
+	Method    string
+	Server    string
+	Password  string
+	SessionId string
+}
+
+func New() *authClient {
+	client := authClient{
+		Method:    "http",
+		Server:    "",
+		Password:  "",
+		SessionId: "",
+	}
+	return &client
+}
+
+func (c *authClient) SetServer(server string) {
+	c.Server = server
+}
+
+func (c *authClient) SetPassword(password string) {
+	c.Password = password
+}
+
+func (c *authClient) SetMethod(method string) {
+	// todo: check strings, allow http or https only
+	c.Method = method
+}
+
+func (c *authClient) getUrl(request string) string {
+	return c.Method + "://" + c.Server + request
+}
+
+func (c *authClient) Login() (string, error) {
 
 	randomString := helper.RandSeq(12)
 	//randomString = "LbdaaizCLejX"
@@ -60,7 +98,7 @@ func Login(userPassword string) (string, error) {
 	//fmt.Println(bytes.NewBuffer(body))
 	fmt.Println(string(body))
 
-	resp, err := http.Post("http://192.168.10.250/api/v1/auth/start", "application/json", bytes.NewBuffer(body))
+	resp, err := http.Post(c.getUrl(endpointAuthStart), "application/json", bytes.NewBuffer(body))
 
 	// An error is returned if something goes wrong
 	if err != nil {
@@ -115,7 +153,7 @@ func Login(userPassword string) (string, error) {
 	fmt.Println("Salt decoded:", serverSaltDecoded)
 	fmt.Println("salt decoded hex", fmt.Sprintf("%x", serverSaltDecoded))
 
-	saltedPassword = helper.GetPBKDF2Hash(userPassword, string(serverSaltDecoded), int(rounds))
+	saltedPassword = helper.GetPBKDF2Hash(c.Password, string(serverSaltDecoded), int(rounds))
 	fmt.Println("Salted Password:", saltedPassword)
 	fmt.Println("salted hex", fmt.Sprintf("%x", saltedPassword))
 
@@ -158,7 +196,7 @@ func Login(userPassword string) (string, error) {
 	//fmt.Println(bytes.NewBuffer(body))
 	fmt.Println(string(finishRequestBody))
 
-	respFinish, errFinish := http.Post("http://192.168.10.250/api/v1/auth/finish", "application/json", bytes.NewBuffer(finishRequestBody))
+	respFinish, errFinish := http.Post(c.getUrl(endpointAuthFinish), "application/json", bytes.NewBuffer(finishRequestBody))
 
 	// An error is returned if something goes wrong
 	if errFinish != nil {
@@ -263,7 +301,7 @@ func Login(userPassword string) (string, error) {
 	//fmt.Println(bytes.NewBuffer(body))
 	fmt.Println(string(createSessionRequestBody))
 
-	respCreateSession, errCreateSession := http.Post("http://192.168.10.250/api/v1/auth/create_session", "application/json", bytes.NewBuffer(createSessionRequestBody))
+	respCreateSession, errCreateSession := http.Post(c.getUrl(endpointAuthCreateSession), "application/json", bytes.NewBuffer(createSessionRequestBody))
 
 	// An error is returned if something goes wrong
 	if errCreateSession != nil {
@@ -302,7 +340,7 @@ func Login(userPassword string) (string, error) {
 	//return "ok", errors.New("test error")
 }
 
-func Request(sessionId string) {
+func (c *authClient) Request() {
 	client := http.Client{}
 
 	request, err := http.NewRequest("GET", "http://192.168.10.250/api/v1/auth/me", nil)
@@ -310,7 +348,7 @@ func Request(sessionId string) {
 		fmt.Println(err)
 	}
 
-	request.Header.Add("authorization", "Session "+sessionId)
+	request.Header.Add("authorization", "Session "+c.SessionId)
 
 	respMe, errMe := client.Do(request)
 	if errMe != nil {
