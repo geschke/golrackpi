@@ -380,3 +380,73 @@ func (c *AuthClient) Request() {
 	fmt.Println(resultMe)
 
 }
+
+func (c *AuthClient) ProcessData() {
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	respMe, errMe := client.Do(request)
+	if errMe != nil {
+		fmt.Println(errMe)
+	}
+	fmt.Println(respMe.Body)
+	var resultMe map[string]interface{}
+	json.NewDecoder(respMe.Body).Decode(&resultMe)
+	fmt.Println(resultMe)
+
+}
+
+func (c *AuthClient) Modules() {
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/modules"), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errMe := client.Do(request)
+	if errMe != nil {
+		fmt.Println(errMe)
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	fmt.Println(response.Body)
+	var resultMe map[string]interface{}
+	json.NewDecoder(response.Body).Decode(&resultMe)
+	fmt.Println(resultMe)
+
+}
+
+func (c *AuthClient) Settings() {
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings"), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	respMe, errMe := client.Do(request)
+	if errMe != nil {
+		fmt.Println(errMe)
+	}
+
+	fmt.Println(respMe.Body)
+	var resultMe map[string]interface{}
+	json.NewDecoder(respMe.Body).Decode(&resultMe)
+	fmt.Println(resultMe)
+
+}
