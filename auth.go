@@ -38,16 +38,16 @@ type AuthCreateSessionType struct {
 	Payload       string `json:"payload"`
 }
 
-type authClient struct {
-	Method    string
+type AuthClient struct {
+	Scheme    string
 	Server    string
 	Password  string
 	SessionId string
 }
 
-func New() *authClient {
-	client := authClient{
-		Method:    "http",
+func New() *AuthClient {
+	client := AuthClient{
+		Scheme:    "http",
 		Server:    "",
 		Password:  "",
 		SessionId: "",
@@ -55,24 +55,43 @@ func New() *authClient {
 	return &client
 }
 
-func (c *authClient) SetServer(server string) {
+func NewWithParameter(param AuthClient) *AuthClient {
+	if param.Scheme == "https" {
+		param.Scheme = "https"
+	} else {
+		param.Scheme = "http"
+	}
+	client := AuthClient{
+		Scheme:   param.Scheme,
+		Server:   param.Server,
+		Password: param.Password,
+	}
+	return &client
+}
+
+func (c *AuthClient) SetServer(server string) {
 	c.Server = server
 }
 
-func (c *authClient) SetPassword(password string) {
+func (c *AuthClient) SetPassword(password string) {
 	c.Password = password
 }
 
-func (c *authClient) SetMethod(method string) {
+func (c *AuthClient) SetScheme(scheme string) {
 	// todo: check strings, allow http or https only
-	c.Method = method
+	if scheme == "https" {
+		scheme = "https"
+	} else {
+		scheme = "http"
+	}
+	c.Scheme = scheme
 }
 
-func (c *authClient) getUrl(request string) string {
-	return c.Method + "://" + c.Server + request
+func (c *AuthClient) getUrl(request string) string {
+	return c.Scheme + "://" + c.Server + request
 }
 
-func (c *authClient) Login() (string, error) {
+func (c *AuthClient) Login() (string, error) {
 
 	randomString := helper.RandSeq(12)
 	//randomString = "LbdaaizCLejX"
@@ -332,6 +351,7 @@ func (c *authClient) Login() (string, error) {
 	fmt.Println(resultCreateSession)
 	sessionId := resultCreateSession["sessionId"].(string)
 
+	c.SessionId = sessionId
 	return sessionId, nil
 
 	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
@@ -340,10 +360,10 @@ func (c *authClient) Login() (string, error) {
 	//return "ok", errors.New("test error")
 }
 
-func (c *authClient) Request() {
+func (c *AuthClient) Request() {
 	client := http.Client{}
 
-	request, err := http.NewRequest("GET", "http://192.168.10.250/api/v1/auth/me", nil)
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/auth/me"), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
