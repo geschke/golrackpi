@@ -11,8 +11,9 @@ import (
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
-	"github.com/geschke/golrackpi/internal/helper"
 	"io/ioutil"
+
+	"github.com/geschke/golrackpi/internal/helper"
 
 	"net/http"
 )
@@ -391,15 +392,99 @@ func (c *AuthClient) ProcessData() {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	respMe, errMe := client.Do(request)
+	response, errMe := client.Do(request)
 	if errMe != nil {
 		fmt.Println(errMe)
 	}
-	fmt.Println(respMe.Body)
-	var resultMe map[string]interface{}
-	json.NewDecoder(respMe.Body).Decode(&resultMe)
-	fmt.Println(resultMe)
 
+	body, err := ioutil.ReadAll(response.Body)
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	fmt.Println(response.Body)
+	//var resultMe map[string]interface{}
+	var jsonResult interface{}
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		fmt.Println(errJson)
+	}
+	fmt.Println(jsonResult)
+
+	m, mOk := jsonResult.(map[string]interface{})
+	s, _ := jsonResult.([]interface{})
+
+	//m := jsonResult.(map[string]interface{})
+	if mOk {
+		// Use Map
+		fmt.Println("use map")
+		fmt.Println(m)
+	} else {
+		// Use Slice
+		fmt.Println("use slice")
+		fmt.Println(s)
+		for k, v := range s {
+			fmt.Println(k)
+			fmt.Println(v)
+			switch vv := v.(type) {
+			case string:
+				fmt.Println(k, "is string", vv)
+			case float64:
+				fmt.Println(k, "is float64", vv)
+			case []interface{}:
+				fmt.Println(k, "is an array:")
+				for i, u := range vv {
+					fmt.Println(i, u)
+				}
+			default:
+				fmt.Println(k, "is of a type I don't know how to handle")
+			}
+		}
+	}
+
+	/*for k, v := range m {
+		switch vv := v.(type) {
+		case string:
+			fmt.Println(k, "is string", vv)
+		case float64:
+			fmt.Println(k, "is float64", vv)
+		case []interface{}:
+			fmt.Println(k, "is an array:")
+			for i, u := range vv {
+				fmt.Println(i, u)
+			}
+		default:
+			fmt.Println(k, "is of a type I don't know how to handle")
+		}
+	}*/
+	//json.NewDecoder(response.Body).Decode(&resultMe)
+	//fmt.Println(resultMe)
+
+}
+
+func (c *AuthClient) JsonTest() {
+	b := []byte(`{"Name":"Wednesday","Age":6,"Parents":["Gomez","Morticia"]}`)
+	var f interface{}
+	err := json.Unmarshal(b, &f)
+	if err != nil {
+		fmt.Println(err)
+	}
+	m := f.(map[string]interface{})
+	for k, v := range m {
+		switch vv := v.(type) {
+		case string:
+			fmt.Println(k, "is string", vv)
+		case float64:
+			fmt.Println(k, "is float64", vv)
+		case []interface{}:
+			fmt.Println(k, "is an array:")
+			for i, u := range vv {
+				fmt.Println(i, u)
+			}
+		default:
+			fmt.Println(k, "is of a type I don't know how to handle")
+		}
+	}
 }
 
 func (c *AuthClient) Modules() {
@@ -423,9 +508,15 @@ func (c *AuthClient) Modules() {
 	fmt.Println(sb)
 
 	fmt.Println(response.Body)
-	var resultMe map[string]interface{}
-	json.NewDecoder(response.Body).Decode(&resultMe)
-	fmt.Println(resultMe)
+	//var resultMe map[string]interface{}
+	var jsonResult interface{}
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		fmt.Println(errJson)
+	}
+	fmt.Println(jsonResult)
+	//json.NewDecoder(response.Body).Decode(&resultMe)
+	//fmt.Println(resultMe)
 
 }
 
@@ -439,14 +530,25 @@ func (c *AuthClient) Settings() {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	respMe, errMe := client.Do(request)
+	response, errMe := client.Do(request)
 	if errMe != nil {
 		fmt.Println(errMe)
 	}
 
-	fmt.Println(respMe.Body)
-	var resultMe map[string]interface{}
-	json.NewDecoder(respMe.Body).Decode(&resultMe)
-	fmt.Println(resultMe)
+	body, err := ioutil.ReadAll(response.Body)
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	fmt.Println(response.Body)
+	//var resultMe map[string]interface{}
+	var jsonResult interface{}
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		fmt.Println(errJson)
+	}
+	fmt.Println(jsonResult)
+	//json.NewDecoder(response.Body).Decode(&resultMe)
+	//fmt.Println(resultMe)
 
 }
