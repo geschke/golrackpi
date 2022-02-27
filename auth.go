@@ -385,7 +385,9 @@ func (c *AuthClient) Request() {
 func (c *AuthClient) ProcessData() {
 	client := http.Client{}
 
-	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata/devices:local/HomeOwn_P"), nil)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -431,13 +433,16 @@ func (c *AuthClient) ProcessData() {
 				fmt.Println(k, "is string", vv)
 			case float64:
 				fmt.Println(k, "is float64", vv)
+			case map[string]interface{}:
+				fmt.Println(k, "is map dingens", vv)
+				c.writeJson(vv)
 			case []interface{}:
 				fmt.Println(k, "is an array:")
 				for i, u := range vv {
 					fmt.Println(i, u)
 				}
 			default:
-				fmt.Println(k, "is of a type I don't know how to handle")
+				fmt.Println(k, "is of a type I don't know how to handle", vv)
 			}
 		}
 	}
@@ -462,15 +467,9 @@ func (c *AuthClient) ProcessData() {
 
 }
 
-func (c *AuthClient) JsonTest() {
-	b := []byte(`{"Name":"Wednesday","Age":6,"Parents":["Gomez","Morticia"]}`)
-	var f interface{}
-	err := json.Unmarshal(b, &f)
-	if err != nil {
-		fmt.Println(err)
-	}
-	m := f.(map[string]interface{})
-	for k, v := range m {
+func (c *AuthClient) writeJson(data map[string]interface{}) {
+	fmt.Println("in writeJson")
+	for k, v := range data {
 		switch vv := v.(type) {
 		case string:
 			fmt.Println(k, "is string", vv)
