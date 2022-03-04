@@ -382,9 +382,12 @@ func (c *AuthClient) GetProcessDataValues() {
 	pd2 := []string{"HomeBat_P", "HomeGrid_P"}
 	v2 := ProcessData{ModuleId: "devices:local", ProcessDataIds: pd2}
 
-	v3 := []ProcessData{v, v2}
+	pd3 := []string{"BatManufacturer", "BatModel"}
+	v3 := ProcessData{ModuleId: "devices:local:battery", ProcessDataIds: pd3}
 
-	b, err := json.Marshal(v3)
+	v4 := []ProcessData{v, v2, v3}
+
+	b, err := json.Marshal(v4)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
