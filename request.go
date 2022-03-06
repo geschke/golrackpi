@@ -371,21 +371,21 @@ func (c *AuthClient) Settings() {
 
 }
 
-func (c *AuthClient) GetProcessDataValues() {
+func (c *AuthClient) GetProcessDataValues(v ProcessData) {
 	// try to build appropriate JSON
 
-	pd := []string{"Statistic:Autarky:Day",
-		"Statistic:Autarky:Month",
-		"Statistic:Autarky:Total"}
-	v := ProcessData{ModuleId: "scb:statistic:EnergyFlow", ProcessDataIds: pd}
+	/*	pd := []string{"Statistic:Autarky:Day",
+			"Statistic:Autarky:Month",
+			"Statistic:Autarky:Total"}
+		v := ProcessData{ModuleId: "scb:statistic:EnergyFlow", ProcessDataIds: pd}
 
-	pd2 := []string{"HomeBat_P", "HomeGrid_P"}
-	v2 := ProcessData{ModuleId: "devices:local", ProcessDataIds: pd2}
+		pd2 := []string{"HomeBat_P", "HomeGrid_P"}
+		v2 := ProcessData{ModuleId: "devices:local", ProcessDataIds: pd2}
 
-	pd3 := []string{"BatManufacturer", "BatModel"}
-	v3 := ProcessData{ModuleId: "devices:local:battery", ProcessDataIds: pd3}
-
-	v4 := []ProcessData{v, v2, v3}
+		pd3 := []string{"BatManufacturer", "BatModel"}
+		v3 := ProcessData{ModuleId: "devices:local:battery", ProcessDataIds: pd3}
+	*/
+	v4 := []ProcessData{v}
 
 	b, err := json.Marshal(v4)
 	if err != nil {
