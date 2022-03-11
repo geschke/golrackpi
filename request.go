@@ -265,13 +265,18 @@ func (c *AuthClient) GetProcessData(moduleId string, processDataId string) {
 			fmt.Println(v)
 			switch vv := v.(type) {
 			case string:
+
 				fmt.Println(k, "is string", vv)
 			case float64:
 				fmt.Println(k, "is float64", vv)
 			case map[string]interface{}:
 				fmt.Println(k, "is map dingens", vv)
 
-				c.writeJson(vv)
+				moduleid := vv["moduleid"].(string)
+				processdata := vv["processdata"].([]interface{})
+				fmt.Println("moduleid:", moduleid)
+				fmt.Println("processdata", processdata)
+				//c.writeJson(vv)
 			case []interface{}:
 				fmt.Println(k, "is an array:")
 				for i, u := range vv {
@@ -371,7 +376,7 @@ func (c *AuthClient) Settings() {
 
 }
 
-func (c *AuthClient) GetProcessDataValues(v ProcessData) {
+func (c *AuthClient) GetProcessDataValues(v ProcessData) ProcessDataValues {
 	// try to build appropriate JSON
 
 	/*	pd := []string{"Statistic:Autarky:Day",
@@ -443,6 +448,8 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) {
 	s, _ := jsonResult.([]interface{})
 
 	//m := jsonResult.(map[string]interface{})
+	var processDataValues ProcessDataValues
+	var moduleid string
 	if mOk {
 		// Use Map
 		fmt.Println("use map")
@@ -462,7 +469,36 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) {
 			case map[string]interface{}:
 				fmt.Println(k, "is map dingens", vv)
 
-				c.writeJson(vv)
+				moduleid = vv["moduleid"].(string)
+				processdata := vv["processdata"].([]interface{})
+				fmt.Println("moduleid:", moduleid)
+				fmt.Println("processdata", processdata)
+
+				var processDataValue []ProcessDataValue
+				//var processDataIds []string
+				for i, p := range processdata {
+					fmt.Println("i, p:", i, p)
+
+					d := p.(map[string]interface{})
+					fmt.Println("data", d)
+
+					fmt.Println("Unit:", d["unit"])
+					fmt.Println("Id:", d["id"])
+
+					fmt.Println("Value:", d["value"])
+
+					pdValue := ProcessDataValue{Unit: d["unit"].(string), Id: d["id"].(string), Value: d["value"]}
+					fmt.Println("pdValue", pdValue)
+					processDataValue = append(processDataValue, pdValue)
+					//processDataIds = append(processDataIds, p.(string))
+					//processData[moduleid].ProcessDataIds = append(processData[moduleid].ProcessDataIds, p)
+				}
+				//sort.Strings(processDataIds)
+				//processData[moduleid] = ProcessData{ModuleId: moduleid, ProcessDataIds: processDataIds}
+				processDataValues = ProcessDataValues{ModuleId: moduleid, ProcessData: processDataValue}
+				fmt.Println("result", processDataValues)
+
+				//c.writeJson(vv)
 			case []interface{}:
 				fmt.Println(k, "is an array:")
 				for i, u := range vv {
@@ -472,6 +508,7 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) {
 				fmt.Println(k, "is of a type I don't know how to handle", vv)
 			}
 		}
-	}
 
+	}
+	return processDataValues
 }
