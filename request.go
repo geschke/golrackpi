@@ -376,7 +376,7 @@ func (c *AuthClient) Settings() {
 
 }
 
-func (c *AuthClient) GetProcessDataValues(v ProcessData) ProcessDataValues {
+func (c *AuthClient) GetProcessDataValues(v ProcessData) map[string]ProcessDataValues {
 	// try to build appropriate JSON
 
 	/*	pd := []string{"Statistic:Autarky:Day",
@@ -449,6 +449,8 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) ProcessDataValues {
 
 	//m := jsonResult.(map[string]interface{})
 	var processDataValues ProcessDataValues
+	resultData := make(map[string]ProcessDataValues)
+
 	var moduleid string
 	if mOk {
 		// Use Map
@@ -507,8 +509,9 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) ProcessDataValues {
 			default:
 				fmt.Println(k, "is of a type I don't know how to handle", vv)
 			}
+			resultData[moduleid] = processDataValues
 		}
 
 	}
-	return processDataValues
+	return resultData
 }
