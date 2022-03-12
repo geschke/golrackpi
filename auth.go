@@ -97,9 +97,9 @@ func (c *AuthClient) Login() (string, error) {
 	randomString := helper.RandSeq(12)
 	//randomString = "LbdaaizCLejX"
 
-	fmt.Println("randomString:", randomString)
+	//fmt.Println("randomString:", randomString)
 	base64String := b64.StdEncoding.EncodeToString([]byte(randomString))
-	fmt.Println("first nonce mit base64:", base64String)
+	//fmt.Println("first nonce mit base64:", base64String)
 
 	userName := "user"
 	//userPassword := "" // todo: store in some config
@@ -116,7 +116,7 @@ func (c *AuthClient) Login() (string, error) {
 	body, _ := json.Marshal(startRequest)
 
 	//fmt.Println(bytes.NewBuffer(body))
-	fmt.Println(string(body))
+	//fmt.Println(string(body))
 
 	resp, err := http.Post(c.getUrl(endpointAuthStart), "application/json", bytes.NewBuffer(body))
 
@@ -139,43 +139,37 @@ func (c *AuthClient) Login() (string, error) {
 	}
 
 	//Convert bytes to String and print
-	jsonStr := string(responseBody)
-	fmt.Println("Response: ", jsonStr)
+	//jsonStr := string(responseBody)
+	//fmt.Println("Response: ", jsonStr)
 
 	foo := bytes.NewReader(responseBody)
 
 	var result map[string]interface{}
 	json.NewDecoder(foo).Decode(&result)
-	fmt.Println(result)
+	//fmt.Println(result)
 
-	var serverNonce string
-	serverNonce = result["nonce"].(string)
+	var serverNonce string = result["nonce"].(string)
 	//rounds, _ := strconv.Atoi(result["rounds"].(string))
 	rounds := int64(result["rounds"].(float64))
 	serverSalt := result["salt"].(string)
 	transactionId := result["transactionId"].(string)
 
-	//rounds = 29000
-	//serverSalt = "1TEjZPCmUIqjutCZ"
-	//serverNonce = "TGJkYWFpekNMZWpY9lbSkk/LstjWvyb7"
-	//transactionId = "7fc2f2b430a9f0c656bcfcebd17f83bfee5e72d8183315288a51376e7709b2d4"
-
-	fmt.Println("nonce:", serverNonce)
-	fmt.Println("rounds:", rounds)
-	fmt.Println("salt:", serverSalt)
-	fmt.Println("transactionId:", transactionId)
+	//fmt.Println("nonce:", serverNonce)
+	//fmt.Println("rounds:", rounds)
+	//fmt.Println("salt:", serverSalt)
+	//fmt.Println("transactionId:", transactionId)
 
 	// some magic crypto stuff
 
 	var saltedPassword, clientKey, serverKey, storedKey, clientSignature, serverSignature []byte
 
 	serverSaltDecoded, _ := b64.StdEncoding.DecodeString(serverSalt)
-	fmt.Println("Salt decoded:", serverSaltDecoded)
-	fmt.Println("salt decoded hex", fmt.Sprintf("%x", serverSaltDecoded))
+	//fmt.Println("Salt decoded:", serverSaltDecoded)
+	//fmt.Println("salt decoded hex", fmt.Sprintf("%x", serverSaltDecoded))
 
 	saltedPassword = helper.GetPBKDF2Hash(c.Password, string(serverSaltDecoded), int(rounds))
-	fmt.Println("Salted Password:", saltedPassword)
-	fmt.Println("salted hex", fmt.Sprintf("%x", saltedPassword))
+	//fmt.Println("Salted Password:", saltedPassword)
+	//fmt.Println("salted hex", fmt.Sprintf("%x", saltedPassword))
 
 	clientKey = helper.GetHMACSHA256(saltedPassword, "Client Key")
 
@@ -183,28 +177,25 @@ func (c *AuthClient) Login() (string, error) {
 
 	storedKey = helper.GetSHA256Hash(clientKey)
 
-	fmt.Println("clientKey", clientKey)
-	fmt.Println("hex", fmt.Sprintf("%x", clientKey))
-	fmt.Println("serverKey:", serverKey)
-	fmt.Println("hex", fmt.Sprintf("%x", serverKey))
-	fmt.Println("storedKey:", storedKey)
-	fmt.Println("hex", fmt.Sprintf("%x", storedKey))
+	//fmt.Println("clientKey", clientKey)
+	//fmt.Println("hex", fmt.Sprintf("%x", clientKey))
+	//fmt.Println("serverKey:", serverKey)
+	//fmt.Println("hex", fmt.Sprintf("%x", serverKey))
+	//fmt.Println("storedKey:", storedKey)
+	//fmt.Println("hex", fmt.Sprintf("%x", storedKey))
 
 	authMessage := fmt.Sprintf("n=%s,r=%s,r=%s,s=%s,i=%d,c=biws,r=%s", userName, startRequest.Nonce, string(serverNonce), string(serverSalt), rounds, string(serverNonce))
-	fmt.Println("authMessage", authMessage)
+	//fmt.Println("authMessage", authMessage)
 	// bis hierhin ok
 
 	clientSignature = helper.GetHMACSHA256(storedKey, authMessage)
 	serverSignature = helper.GetHMACSHA256(serverKey, authMessage)
-	fmt.Println("clientSignature", clientSignature)
-	fmt.Println("serverSignature", serverSignature)
+	//fmt.Println("clientSignature", clientSignature)
+	//fmt.Println("serverSignature", serverSignature)
 
 	clientProof := helper.CreateClientProof(clientSignature, clientKey)
-	fmt.Println("clientProof:", clientProof)
+	//fmt.Println("clientProof:", clientProof)
 	// Perform step 2 of the authentication
-	//JsonObject authFinishJsonObject = new JsonObject();
-	//authFinishJsonObject.addProperty("transactionId", transactionId);
-	//authFinishJsonObject.addProperty("proof", clientProof);
 
 	finishRequest := AuthFinishRequestType{
 		TransactionId: transactionId,
@@ -213,8 +204,7 @@ func (c *AuthClient) Login() (string, error) {
 
 	finishRequestBody, _ := json.Marshal(finishRequest)
 
-	//fmt.Println(bytes.NewBuffer(body))
-	fmt.Println(string(finishRequestBody))
+	//fmt.Println(string(finishRequestBody))
 
 	respFinish, errFinish := http.Post(c.getUrl(endpointAuthFinish), "application/json", bytes.NewBuffer(finishRequestBody))
 
@@ -237,29 +227,29 @@ func (c *AuthClient) Login() (string, error) {
 	}
 
 	//Convert bytes to String and print
-	jsonFinishStr := string(responseFinishBody)
-	fmt.Println("Response Finish: ", jsonFinishStr)
+	//jsonFinishStr := string(responseFinishBody)
+	//fmt.Println("Response Finish: ", jsonFinishStr)
 
 	fooFinish := bytes.NewReader(responseFinishBody)
 
 	var resultFinish map[string]interface{}
 	json.NewDecoder(fooFinish).Decode(&resultFinish)
-	fmt.Println(resultFinish)
+	//fmt.Println(resultFinish)
 
 	signatureStr := resultFinish["signature"].(string)
 	signature, _ := b64.StdEncoding.DecodeString(signatureStr)
 	token := resultFinish["token"].(string)
 
-	fmt.Println("Signature", signature)
-	fmt.Println("hex", fmt.Sprintf("%x", signature))
+	//fmt.Println("Signature", signature)
+	//fmt.Println("hex", fmt.Sprintf("%x", signature))
 
-	fmt.Println("token", token)
+	//fmt.Println("token", token)
 
 	cmpBytes := bytes.Compare(signature, serverSignature)
-	fmt.Println("compared:", cmpBytes)
+	//fmt.Println("compared:", cmpBytes)
 
 	if cmpBytes != 0 {
-		fmt.Println("signature and serverSignature are not equal!")
+		//fmt.Println("signature and serverSignature are not equal!")
 		return "", errors.New("signature check error")
 		//os.Exit(1)
 
@@ -272,12 +262,12 @@ func (c *AuthClient) Login() (string, error) {
 	h.Write([]byte(clientKey))
 
 	protocolKey := h.Sum(nil)
-	fmt.Println("MAC / protocol key:", protocolKey)
-	fmt.Println("hex", fmt.Sprintf("%x", protocolKey))
+	//fmt.Println("MAC / protocol key:", protocolKey)
+	//fmt.Println("hex", fmt.Sprintf("%x", protocolKey))
 
 	ivNonce, _ := helper.GenerateRandomBytes(16)
-	fmt.Println("iv / random bytes", ivNonce)
-	fmt.Println("hex", fmt.Sprintf("%x", ivNonce))
+	//fmt.Println("iv / random bytes", ivNonce)
+	//fmt.Println("hex", fmt.Sprintf("%x", ivNonce))
 
 	block, err := aes.NewCipher(protocolKey)
 	if err != nil {
@@ -294,20 +284,20 @@ func (c *AuthClient) Login() (string, error) {
 		return "", errors.New("cipher error " + err.Error())
 	}
 
-	ns := aesgcm.NonceSize()
-	fmt.Println("Nonce size: ", ns)
+	//ns := aesgcm.NonceSize()
+	//fmt.Println("Nonce size: ", ns)
 
 	var tag []byte
 	//ciphertext := aesgcm.Seal(ivNonce, ivNonce, []byte(token), nil)
 	ciphertext := aesgcm.Seal(nil, ivNonce, []byte(token), nil)
-	fmt.Println("ciphertext:", ciphertext)
-	fmt.Printf("%x\n", ciphertext)
+	//fmt.Println("ciphertext:", ciphertext)
+	//fmt.Printf("%x\n", ciphertext)
 	// golang appends tag at the end of ciphertext, so we have to extract it
 	ciphertext, tag = ciphertext[:len(ciphertext)-16], ciphertext[len(ciphertext)-16:]
-	fmt.Println("ciphertext ohne:", ciphertext)
-	fmt.Printf("%x\n", ciphertext)
-	fmt.Println("tag:", tag)
-	fmt.Printf("%x\n", tag)
+	//fmt.Println("ciphertext ohne:", ciphertext)
+	//fmt.Printf("%x\n", ciphertext)
+	//fmt.Println("tag:", tag)
+	//fmt.Printf("%x\n", tag)
 
 	createSessionRequest := AuthCreateSessionType{
 		TransactionId: transactionId,
@@ -318,15 +308,14 @@ func (c *AuthClient) Login() (string, error) {
 
 	createSessionRequestBody, _ := json.Marshal(createSessionRequest)
 
-	//fmt.Println(bytes.NewBuffer(body))
-	fmt.Println(string(createSessionRequestBody))
+	//fmt.Println(string(createSessionRequestBody))
 
 	respCreateSession, errCreateSession := http.Post(c.getUrl(endpointAuthCreateSession), "application/json", bytes.NewBuffer(createSessionRequestBody))
 
 	// An error is returned if something goes wrong
 	if errCreateSession != nil {
 		return "", errors.New("could not create session")
-		//panic(errCreateSession)
+
 	}
 	//Need to close the response stream, once response is read.
 	//Hence defer close. It will automatically take care of it.
@@ -337,19 +326,19 @@ func (c *AuthClient) Login() (string, error) {
 	responseCreateSessionBody, errCreateSessionBody := ioutil.ReadAll(respCreateSession.Body)
 	if errCreateSessionBody != nil {
 		//Failed to read response.
-		//panic(errCreateSessionBody)
+
 		return "", errors.New("could not read from create session request")
 	}
 
 	//Convert bytes to String and print
-	jsonCreateSessionStr := string(responseCreateSessionBody)
-	fmt.Println("Response CreateSession: ", jsonCreateSessionStr)
+	//jsonCreateSessionStr := string(responseCreateSessionBody)
+	//fmt.Println("Response CreateSession: ", jsonCreateSessionStr)
 
 	fooCreateSession := bytes.NewReader(responseCreateSessionBody)
 
 	var resultCreateSession map[string]interface{}
 	json.NewDecoder(fooCreateSession).Decode(&resultCreateSession)
-	fmt.Println(resultCreateSession)
+	//fmt.Println(resultCreateSession)
 	sessionId := resultCreateSession["sessionId"].(string)
 
 	c.SessionId = sessionId
@@ -357,8 +346,6 @@ func (c *AuthClient) Login() (string, error) {
 
 	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
 
-	//return "ok", nil
-	//return "ok", errors.New("test error")
 }
 
 func (c *AuthClient) Logout() {

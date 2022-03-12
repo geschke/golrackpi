@@ -433,9 +433,9 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) map[string]ProcessDataV
 	if err != nil {
 		panic(err)
 	}
-	sb := string(body)
-	fmt.Println("raw body output:")
-	fmt.Println(sb)
+	//sb := string(body)
+	//fmt.Println("raw body output:")
+	//fmt.Println(sb)
 
 	var jsonResult interface{}
 	errJson := json.Unmarshal(body, &jsonResult)
