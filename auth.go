@@ -372,3 +372,24 @@ func (c *AuthClient) Request() {
 	fmt.Println(resultMe)
 
 }
+
+func (c *AuthClient) Me() {
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/auth/me"), nil)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	respMe, errMe := client.Do(request)
+	if errMe != nil {
+		fmt.Println(errMe)
+	}
+
+	var resultMe map[string]interface{}
+	json.NewDecoder(respMe.Body).Decode(&resultMe)
+	fmt.Println(resultMe)
+
+}
