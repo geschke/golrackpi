@@ -54,11 +54,11 @@ var processdataListCmd = &cobra.Command{
 }
 
 var processdataGetCmd = &cobra.Command{
-	Use: "get [moduleid] [processdataid(s)]",
+	Use: "get [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
 
 	Short: "Get processdata values",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
-	Args: cobra.ExactArgs(2),
+	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		getProcessdata(args)
@@ -107,21 +107,40 @@ func listProcessdata() {
 
 func getProcessdata(args []string) {
 
-	fmt.Println("in getProcessdata")
-	fmt.Println(args)
-	moduleidArg := args[0]
-	processdataidArg := args[1]
-	moduleIds := strings.Split(moduleidArg, ",")
-	processdataIds := strings.Split(processdataidArg, ",")
-	fmt.Println("moduleids:", moduleIds)
-	fmt.Println("processdataids:", processdataIds)
+	// check format of submitted arguments
+	var requestProcessData []golrackpi.ProcessData
 
-	if len(moduleIds) > 1 {
-		fmt.Println("Please enter only one moduleid.")
+	if strings.Contains(args[0], "|") { // search "|"" separator to request one or more modules with their processdataids
+		for _, argModuleProcessdata := range args {
+			moduleProcessdata := strings.Split(argModuleProcessdata, "|")
+			if len(moduleProcessdata) != 2 {
+				fmt.Println("Wrong format of moduleid and processdataid values.")
+				return
+			}
+			argModuleId := moduleProcessdata[0]
+			processdataIds := strings.Split(moduleProcessdata[1], ",")
+			v := golrackpi.ProcessData{ModuleId: argModuleId, ProcessDataIds: processdataIds}
+			requestProcessData = append(requestProcessData, v)
+
+		}
+
+	} else if len(args) == 2 { // else moduleid and processdataids must submitted separately
+		moduleIds := strings.Split(args[0], ",")
+		processdataIds := strings.Split(args[1], ",")
+		fmt.Println("moduleids:", moduleIds)
+		fmt.Println("processdataids:", processdataIds)
+
+		if len(moduleIds) > 1 {
+			fmt.Println("Please enter only one moduleid.")
+			return
+		}
+		v := golrackpi.ProcessData{ModuleId: moduleIds[0], ProcessDataIds: processdataIds}
+		requestProcessData = append(requestProcessData, v)
+
+	} else {
+		fmt.Println("Please submit module and processdata in an appropriate format.")
 		return
 	}
-
-	v := golrackpi.ProcessData{ModuleId: moduleIds[0], ProcessDataIds: processdataIds}
 
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -136,7 +155,7 @@ func getProcessdata(args []string) {
 		fmt.Println(err)
 		panic(err.Error())
 	}
-	pdv := lib.GetProcessDataValues(v)
+	pdv := lib.GetProcessDataValues(requestProcessData)
 	fmt.Println("processDataValues:", pdv)
 
 	moduleNames := make([]string, 0, len(pdv))
@@ -148,8 +167,8 @@ func getProcessdata(args []string) {
 	sort.Strings(moduleNames)
 
 	if csvOutput {
+		fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		for _, moduleId := range moduleNames {
-			fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 
 			for _, processData := range pdv[moduleId].ProcessData {
 				fmt.Printf("%s%s%s%s%s%s%v\n", moduleId, delimiter, processData.Id, delimiter, processData.Unit, delimiter, processData.Value)

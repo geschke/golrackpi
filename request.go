@@ -376,7 +376,7 @@ func (c *AuthClient) Settings() {
 
 }
 
-func (c *AuthClient) GetProcessDataValues(v ProcessData) map[string]ProcessDataValues {
+func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDataValues {
 	// try to build appropriate JSON
 
 	/*	pd := []string{"Statistic:Autarky:Day",
@@ -390,9 +390,9 @@ func (c *AuthClient) GetProcessDataValues(v ProcessData) map[string]ProcessDataV
 		pd3 := []string{"BatManufacturer", "BatModel"}
 		v3 := ProcessData{ModuleId: "devices:local:battery", ProcessDataIds: pd3}
 	*/
-	v4 := []ProcessData{v}
+	//v4 := []ProcessData{v}
 
-	b, err := json.Marshal(v4)
+	b, err := json.Marshal(v)
 	if err != nil {
 		fmt.Println("error:", err)
 	}
