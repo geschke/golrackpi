@@ -18,6 +18,7 @@ func init() {
 
 	rootCmd.AddCommand(infoCmd)
 	infoCmd.AddCommand(infoVersionCmd)
+	infoCmd.AddCommand(infoMeCmd)
 
 }
 
@@ -67,6 +68,44 @@ func infoVersion() {
 	for k, v := range info {
 		fmt.Printf("%s: %v\n", k, v)
 	}
+
+}
+
+var infoMeCmd = &cobra.Command{
+	Use: "me",
+
+	Short: "Returns information about the User",
+	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+
+	Run: func(cmd *cobra.Command,
+		args []string) {
+		infoMe()
+	},
+}
+
+func infoMe() {
+	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
+		Scheme:   authData.Scheme,
+		Server:   authData.Server,
+		Password: authData.Password,
+	})
+
+	_, err := lib.Login()
+
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
+
+	lib.Me()
+	/*if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
+
+	for k, v := range info {
+		fmt.Printf("%s: %v\n", k, v)
+	}*/
 
 }
 
