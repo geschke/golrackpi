@@ -138,6 +138,8 @@ func (c *AuthClient) Login() (string, error) {
 		//panic(err)
 	}
 
+	// todo: add reaction to existing servers with wrong result
+
 	//Convert bytes to String and print
 	//jsonStr := string(responseBody)
 	//fmt.Println("Response: ", jsonStr)

@@ -51,42 +51,23 @@ func infoVersion() {
 		Password: authData.Password,
 	})
 
-	ok, err := lib.Login()
+	_, err := lib.Login()
 
-	fmt.Println("Ok?", ok)
 	if err != nil {
-		fmt.Println(err)
-		panic(err.Error())
+		fmt.Println("An error occurred:", err)
+		return
 	}
 
-	info := lib.Version()
+	info, err := lib.Version()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
+
 	for k, v := range info {
-		fmt.Println("key, value: ", k, v)
+		fmt.Printf("%s: %v\n", k, v)
 	}
 
-	//fmt.Println("returned: ", pd)
-
-	/*
-		moduleNames := make([]string, 0, len(pd))
-		for mn := range pd {
-			moduleNames = append(moduleNames, mn)
-		}
-
-		// sort the slice by keys
-		sort.Strings(moduleNames)
-
-		for _, moduleId := range moduleNames {
-			fmt.Println("Module:", moduleId)
-			fmt.Println("ProcessDataIds:")
-			for _, processDataIds := range pd[moduleId].ProcessDataIds {
-				fmt.Println("\t", processDataIds)
-
-			}
-			fmt.Println()
-		}
-
-		//fmt.Printf("%-"+fmt.Sprintf("%d", maxStrlen)+"s%-21s%-21s\n", domainname, dtCreated, dtUpdated)
-	*/
 }
 
 /*
