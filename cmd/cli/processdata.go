@@ -73,6 +73,7 @@ func listProcessdata() {
 	})
 
 	ok, err := lib.Login()
+	defer lib.Logout()
 
 	fmt.Println("Ok?", ok)
 	if err != nil {
@@ -149,6 +150,7 @@ func getProcessdata(args []string) {
 	})
 
 	ok, err := lib.Login()
+	defer lib.Logout()
 
 	fmt.Println("Ok?", ok)
 	if err != nil {

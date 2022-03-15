@@ -3,6 +3,7 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
+	//"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -30,41 +31,45 @@ type ModuleData struct {
 	Type string
 }
 
-func (c *AuthClient) Modules() map[string]ModuleData {
+func (c *AuthClient) Modules() (map[string]ModuleData, error) {
+	moduleData := make(map[string]ModuleData)
 	client := http.Client{}
 
 	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
 
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/modules"), nil)
 	if err != nil {
-		fmt.Println(err)
+		return moduleData, err
 	}
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
 	response, errMe := client.Do(request)
 	if errMe != nil {
-		fmt.Println(errMe)
+		return moduleData, errMe
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
-	sb := string(body)
-	fmt.Println("raw body output:")
-	fmt.Println(sb)
+	if err != nil {
+		return moduleData, err
 
-	fmt.Println(response.Body)
+	}
+	//sb := string(body)
+	//fmt.Println("raw body output:")
+	//fmt.Println(sb)
+
+	//fmt.Println(response.Body)
 	//var resultMe map[string]interface{}
 	var jsonResult interface{}
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		fmt.Println(errJson)
+		return moduleData, errJson
+
 	}
-	fmt.Println(jsonResult)
+	//fmt.Println(jsonResult)
 
 	m, mOk := jsonResult.(map[string]interface{})
 	s, _ := jsonResult.([]interface{})
-
-	moduleData := make(map[string]ModuleData)
 
 	//m := jsonResult.(map[string]interface{})
 	if mOk {
@@ -88,19 +93,9 @@ func (c *AuthClient) Modules() map[string]ModuleData {
 
 				moduleId := vv["id"].(string)
 				typeData := vv["type"].(string)
-				fmt.Println("moduleid:", moduleId)
-				fmt.Println("typeData", typeData)
 
-				/*var processDataIds []string
-				for i, p := range processdataids {
-					fmt.Println("i, p:", i, p)
-					processDataIds = append(processDataIds, p.(string))
-					//processData[moduleid].ProcessDataIds = append(processData[moduleid].ProcessDataIds, p)
-				}
-				sort.Strings(processDataIds)*/
 				moduleData[moduleId] = ModuleData{Id: moduleId, Type: typeData}
 
-				//c.writeJson(vv)
 			case []interface{}:
 				fmt.Println(k, "is an array:")
 				for i, u := range vv {
@@ -111,7 +106,7 @@ func (c *AuthClient) Modules() map[string]ModuleData {
 			}
 		}
 	}
-	return moduleData
+	return moduleData, nil
 }
 
 func (c *AuthClient) GetProcessDataList() map[string]ProcessData {
