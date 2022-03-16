@@ -586,3 +586,102 @@ func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDat
 	}
 	return resultData
 }
+
+// EventsCustomized returns the latest events with localized descriptions. It takes as arguments
+// the language string (currently available de-de, en-gb, es-es, fr-fr, hu-hu, it-it, nl-nl, pl-pl, pt-pt, cs-cz, el-gr and zh-cn) and
+// the maximum number of events (default: 10)
+func (c *AuthClient) EventsCustomized(language string, max int) ([]interface{}, error) {
+	if language == "" {
+		language = "en-gb"
+	}
+	if max <= 0 {
+		max = 10
+	}
+	var result []interface{}
+	payload := struct {
+		Language string `json:"language"`
+		Max      int    `json:"max"`
+	}{
+		Language: language,
+		Max:      max,
+	}
+
+	b, err := json.Marshal(payload)
+	if err != nil {
+		fmt.Println("error:", err)
+	}
+
+	fmt.Println(string(b))
+
+	client := http.Client{}
+
+	request, err := http.NewRequest("POST", c.getUrl("/api/v1/events/latest"), bytes.NewBuffer(b))
+	if err != nil {
+		fmt.Println(err)
+	}
+	request.Header.Add("Content-Type", "application/json")
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errReq := client.Do(request)
+	if errReq != nil {
+		fmt.Println(errReq)
+	}
+	//fmt.Println(response)
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		panic(err)
+	}
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	var jsonResult interface{}
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		fmt.Println(errJson)
+	}
+	fmt.Println(jsonResult)
+
+	m, mOk := jsonResult.(map[string]interface{})
+	s, _ := jsonResult.([]interface{})
+
+	//m := jsonResult.(map[string]interface{})
+	//var processDataValues ProcessDataValues
+	//resultData := make(map[string]ProcessDataValues)
+
+	//var moduleid string
+	if mOk {
+		// Use Map
+		fmt.Println("use map")
+		fmt.Println(m)
+	} else {
+		// Use Slice
+		fmt.Println("use slice")
+		fmt.Println(s)
+		for k, v := range s {
+			fmt.Println(k)
+			fmt.Println(v)
+			switch vv := v.(type) {
+			case string:
+				fmt.Println(k, "is string", vv)
+			case float64:
+				fmt.Println(k, "is float64", vv)
+			case map[string]interface{}:
+				fmt.Println(k, "is map dingens", vv)
+
+				//c.writeJson(vv)
+			case []interface{}:
+				fmt.Println(k, "is an array:")
+				for i, u := range vv {
+					fmt.Println(i, u)
+				}
+			default:
+				fmt.Println(k, "is of a type I don't know how to handle", vv)
+			}
+			//resultData[moduleid] = processDataValues
+		}
+
+	}
+	return result, nil
+}

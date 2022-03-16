@@ -62,7 +62,7 @@ func latestEvents() {
 		panic(err.Error())
 	}
 
-	events, err := lib.Events()
+	events, err := lib.EventsCustomized("de-de", 15)
 
 	fmt.Println("events:", events)
 
