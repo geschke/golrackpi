@@ -149,14 +149,14 @@ func getProcessdata(args []string) {
 		Password: authData.Password,
 	})
 
-	ok, err := lib.Login()
+	_, err := lib.Login()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		//panic(err.Error())
+		return
+	}
 	defer lib.Logout()
 
-	fmt.Println("Ok?", ok)
-	if err != nil {
-		fmt.Println(err)
-		panic(err.Error())
-	}
 	pdv := lib.GetProcessDataValues(requestProcessData)
 	fmt.Println("processDataValues:", pdv)
 

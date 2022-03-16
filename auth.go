@@ -236,7 +236,13 @@ func (c *AuthClient) Login() (string, error) {
 
 	var resultFinish map[string]interface{}
 	json.NewDecoder(fooFinish).Decode(&resultFinish)
-	//fmt.Println(resultFinish)
+
+	// signature and token only set when login was successful
+	_, authOkSignature := resultFinish["signature"]
+	_, authOkToken := resultFinish["token"]
+	if !authOkSignature || !authOkToken {
+		return "", errors.New("authentication failed")
+	}
 
 	signatureStr := resultFinish["signature"].(string)
 	signature, _ := b64.StdEncoding.DecodeString(signatureStr)
