@@ -72,10 +72,14 @@ func listProcessdata() {
 		Password: authData.Password,
 	})
 
-	ok, err := lib.Login()
+	_, err := lib.Login()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
+
 	defer lib.Logout()
 
-	fmt.Println("Ok?", ok)
 	if err != nil {
 		fmt.Println(err)
 		panic(err.Error())

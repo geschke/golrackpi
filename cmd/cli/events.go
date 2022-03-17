@@ -11,7 +11,13 @@ import (
 	//"strings"
 )
 
+var language string
+var max int
+
 func init() {
+
+	eventsLatestCmd.Flags().StringVarP(&language, "language", "l", "", "Language identifier, e.g. en-gb, de-de, fr-fr")
+	eventsLatestCmd.Flags().IntVarP(&max, "max", "x", 0, "Maximum number of events to regurn (default: 10)")
 
 	eventsLatestCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	eventsLatestCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
@@ -53,16 +59,17 @@ func latestEvents() {
 		Password: authData.Password,
 	})
 
-	ok, err := lib.Login()
+	_, err := lib.Login()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
 	defer lib.Logout()
 
-	fmt.Println("Ok?", ok)
-	if err != nil {
-		fmt.Println(err)
-		panic(err.Error())
-	}
+	fmt.Println("language", language)
+	fmt.Println("max:", max)
 
-	events, err := lib.EventsCustomized("de-de", 15)
+	events, err := lib.EventsCustomized(language, max)
 
 	fmt.Println("events:", events)
 
