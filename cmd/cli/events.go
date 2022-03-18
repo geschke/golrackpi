@@ -16,8 +16,8 @@ var max int
 
 func init() {
 
-	eventsLatestCmd.Flags().StringVarP(&language, "language", "l", "", "Language identifier, e.g. en-gb, de-de, fr-fr")
-	eventsLatestCmd.Flags().IntVarP(&max, "max", "x", 0, "Maximum number of events to regurn (default: 10)")
+	eventsLatestCmd.Flags().StringVarP(&language, "language", "l", "", "Language identifier, e.g. en-gb, de-de, fr-fr, ...")
+	eventsLatestCmd.Flags().IntVarP(&max, "max", "x", 0, "Maximum number of events to return (default: 10)")
 
 	eventsLatestCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	eventsLatestCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
@@ -69,9 +69,18 @@ func latestEvents() {
 	fmt.Println("language", language)
 	fmt.Println("max:", max)
 
-	events, err := lib.EventsCustomized(language, max)
+	//events, err := lib.EventsCustomized(language, max)
+	events, err := lib.Events()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
 
-	fmt.Println("events:", events)
+	//fmt.Println("events:", events)
+	for k, v := range events {
+		fmt.Println("key: ", k, " value:", v)
+		fmt.Println(v.Description)
+	}
 
 	/*	moduleNames := make([]string, 0, len(pdv))
 		for mn := range pdv {
