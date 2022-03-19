@@ -69,50 +69,35 @@ func latestEvents() {
 	fmt.Println("language", language)
 	fmt.Println("max:", max)
 
-	//events, err := lib.EventsCustomized(language, max)
-	events, err := lib.Events()
+	events, err := lib.EventsCustomized(language, max)
+	//events, err := lib.Events()
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
 
-	//fmt.Println("events:", events)
-	for k, v := range events {
+	/*for k, v := range events {
 		fmt.Println("key: ", k, " value:", v)
 		fmt.Println(v.Description)
-	}
+		fmt.Println(v.StartTime)
+		t := v.StartTime
+		fmt.Printf("%d-%02d-%02d %02d:%02d:%02d\n",
+			t.Year(), t.Month(), t.Day(),
+			t.Hour(), t.Minute(), t.Second())
+	}*/
 
-	/*	moduleNames := make([]string, 0, len(pdv))
-		for mn := range pdv {
-			moduleNames = append(moduleNames, mn)
+	if csvOutput {
+		fmt.Printf("Description%sCategory%sLongDescription%sStartTime%sGroup%sEndTime%sCode%sIsActive\n", delimiter, delimiter, delimiter, delimiter, delimiter, delimiter, delimiter)
+		for _, event := range events {
+			fmt.Printf("%s%s%s%s%s%s%s%s%s%s%s%s%d%s%t\n", event.Description, delimiter, event.Category, delimiter, event.LongDescription, delimiter, event.StartTime, delimiter, event.Group, delimiter, event.EndTime, delimiter, event.Code, delimiter, event.IsActive)
+		}
+	} else {
+
+		for _, event := range events {
+			fmt.Println(event.Description, event.Category, event.LongDescription, event.StartTime, event.Group, event.EndTime, event.Code, event.IsActive)
 		}
 
-		// sort the slice by keys
-		sort.Strings(moduleNames)
-
-		if csvOutput {
-			fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
-			for _, moduleId := range moduleNames {
-
-				for _, processData := range pdv[moduleId].ProcessData {
-					fmt.Printf("%s%s%s%s%s%s%v\n", moduleId, delimiter, processData.Id, delimiter, processData.Unit, delimiter, processData.Value)
-
-				}
-
-			}
-		} else {
-
-			for _, moduleId := range moduleNames {
-				fmt.Println("Module:", moduleId)
-				fmt.Println("ProcessDataValues (Id\tUnit\tValue):")
-				for _, processData := range pdv[moduleId].ProcessData {
-					fmt.Println(processData.Id, "\t", processData.Unit, "\t", processData.Value)
-					// todo: add better formatting
-
-				}
-				fmt.Println()
-			}
-		}*/
+	}
 }
 
 /*
