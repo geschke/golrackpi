@@ -548,10 +548,11 @@ func (c *AuthClient) EventsCustomized(language string, max int) ([]EventData, er
 
 	b, err := json.Marshal(payload)
 	if err != nil {
-		fmt.Println("error:", err)
+		//fmt.Println("error:", err)
+		return jsonResult, err
 	}
 
-	fmt.Println(string(b))
+	//fmt.Println(string(b))
 
 	client := http.Client{}
 
@@ -575,18 +576,18 @@ func (c *AuthClient) EventsCustomized(language string, max int) ([]EventData, er
 		//panic(err)
 		return jsonResult, err
 	}
-	sb := string(body)
-	fmt.Println("raw body output:")
-	fmt.Println(sb)
+	//sb := string(body)
+	//fmt.Println("raw body output:")
+	//fmt.Println(sb)
 
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		fmt.Println("Error in json unmarshalling")
-		fmt.Println(errJson)
+		//fmt.Println("Error in json unmarshalling")
+		//fmt.Println(errJson)
 		return jsonResult, errJson
 
 	}
-	fmt.Println(jsonResult)
+	//fmt.Println(jsonResult)
 
 	return jsonResult, nil
 
@@ -614,9 +615,9 @@ func (c *AuthClient) Events() ([]EventData, error) {
 		return jsonResult, err
 
 	}
-	sb := string(body)
-	fmt.Println("raw body output:")
-	fmt.Println(sb)
+	//sb := string(body)
+	//fmt.Println("raw body output:")
+	//fmt.Println(sb)
 
 	//fmt.Println(response.Body)
 	//var resultMe map[string]interface{}
@@ -625,12 +626,12 @@ func (c *AuthClient) Events() ([]EventData, error) {
 
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		fmt.Println("Error in json unmarshalling")
-		fmt.Println(errJson)
+		//fmt.Println("Error in json unmarshalling")
+		//fmt.Println(errJson)
 		return jsonResult, errJson
 
 	}
-	fmt.Println(jsonResult)
+	//fmt.Println(jsonResult)
 
 	return jsonResult, nil
 
