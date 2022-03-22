@@ -11,7 +11,7 @@ var rootCmd = &cobra.Command{
 	Use:   "golrackpi",
 	Short: "Go Client for Kostal Plenticore Inverters",
 	Long: `
- golrackpi is a small CLI application to read some values from Kostal Plenticore Inverters.
+ golrackpi is a small CLI application to read values from Kostal Plenticore Inverters.
  `,
 }
 

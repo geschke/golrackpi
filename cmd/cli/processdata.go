@@ -80,12 +80,11 @@ func listProcessdata() {
 
 	defer lib.Logout()
 
+	pd, err := lib.GetProcessDataList()
 	if err != nil {
-		fmt.Println(err)
-		panic(err.Error())
+		fmt.Println("An error occurred:", err)
+		return
 	}
-
-	pd := lib.GetProcessDataList()
 	//fmt.Println("returned: ", pd)
 
 	moduleNames := make([]string, 0, len(pd))
