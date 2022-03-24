@@ -46,6 +46,26 @@ type EventData struct {
 	IsActive        bool                 `json:"is_active"`
 }
 
+type SettingsDataValues struct {
+	Id      string      `json:"id"`
+	Max     string      `json:"max"`
+	Min     string      `json:"min"`
+	Unit    string      `json:"unit"`
+	Type    interface{} `json:"type"`
+	Access  interface{} `json:"access"`
+	Default string      `json:"default"`
+}
+
+type SettingsData struct {
+	ModuleId string               `json:"moduleid"`
+	Settings []SettingsDataValues `json:"settings"`
+}
+
+type SettingsValues struct {
+	Id    string `json:"id"`
+	Value string `json:"value"`
+}
+
 func (c *AuthClient) Modules() (map[string]ModuleData, error) {
 	moduleData := make(map[string]ModuleData)
 	client := http.Client{}
@@ -292,71 +312,152 @@ func (c *AuthClient) writeJson(data map[string]interface{}) {
 	}
 }
 
-func (c *AuthClient) Settings() {
+func (c *AuthClient) Settings() ([]SettingsData, error) {
+	jsonResult := []SettingsData{}
 	client := http.Client{}
 
 	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
 
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings"), nil)
 	if err != nil {
-		fmt.Println(err)
+		return jsonResult, err
+
 	}
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
 	response, errMe := client.Do(request)
 	if errMe != nil {
-		fmt.Println(errMe)
+		return jsonResult, errMe
+
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return jsonResult, err
+	}
+	//sb := string(body)
+	//fmt.Println("raw body output:")
+	//fmt.Println(sb)
+
+	//fmt.Println(response.Body)
+	//var resultMe map[string]interface{}
+
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		return jsonResult, errJson
+
+	}
+	//fmt.Println(jsonResult)
+	return jsonResult, nil
+	/*	m, mOk := jsonResult.(map[string]interface{})
+		s, _ := jsonResult.([]interface{})
+
+		//m := jsonResult.(map[string]interface{})
+		if mOk {
+			// Use Map
+			fmt.Println("use map")
+			fmt.Println(m)
+		} else {
+			// Use Slice
+			fmt.Println("use slice")
+			fmt.Println(s)
+			for k, v := range s {
+				fmt.Println(k)
+				fmt.Println(v)
+				switch vv := v.(type) {
+				case string:
+					fmt.Println(k, "is string", vv)
+				case float64:
+					fmt.Println(k, "is float64", vv)
+				case map[string]interface{}:
+					fmt.Println(k, "is map dingens", vv)
+					c.writeJson(vv)
+				case []interface{}:
+					fmt.Println(k, "is an array:")
+					for i, u := range vv {
+						fmt.Println(i, u)
+					}
+				default:
+					fmt.Println(k, "is of a type I don't know how to handle", vv)
+				}
+			}
+		}
+	*/
+}
+
+func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
+	jsonResult := []SettingsValues{}
+	client := http.Client{}
+
+	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings/"+moduleid), nil)
+	if err != nil {
+		return jsonResult, err
+
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errMe := client.Do(request)
+	if errMe != nil {
+		return jsonResult, errMe
+
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return jsonResult, err
+	}
 	sb := string(body)
 	fmt.Println("raw body output:")
 	fmt.Println(sb)
 
-	fmt.Println(response.Body)
-	//var resultMe map[string]interface{}
-	var jsonResult interface{}
+	//fmt.Println(response.Body)
+
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		fmt.Println(errJson)
+		return jsonResult, errJson
+
 	}
-	fmt.Println(jsonResult)
 
-	m, mOk := jsonResult.(map[string]interface{})
-	s, _ := jsonResult.([]interface{})
+	//fmt.Println(jsonResult)
+	return jsonResult, nil
+	/*	m, mOk := jsonResult.(map[string]interface{})
+		s, _ := jsonResult.([]interface{})
 
-	//m := jsonResult.(map[string]interface{})
-	if mOk {
-		// Use Map
-		fmt.Println("use map")
-		fmt.Println(m)
-	} else {
-		// Use Slice
-		fmt.Println("use slice")
-		fmt.Println(s)
-		for k, v := range s {
-			fmt.Println(k)
-			fmt.Println(v)
-			switch vv := v.(type) {
-			case string:
-				fmt.Println(k, "is string", vv)
-			case float64:
-				fmt.Println(k, "is float64", vv)
-			case map[string]interface{}:
-				fmt.Println(k, "is map dingens", vv)
-				c.writeJson(vv)
-			case []interface{}:
-				fmt.Println(k, "is an array:")
-				for i, u := range vv {
-					fmt.Println(i, u)
+		//m := jsonResult.(map[string]interface{})
+		if mOk {
+			// Use Map
+			fmt.Println("use map")
+			fmt.Println(m)
+		} else {
+			// Use Slice
+			fmt.Println("use slice")
+			fmt.Println(s)
+			for k, v := range s {
+				fmt.Println(k)
+				fmt.Println(v)
+				switch vv := v.(type) {
+				case string:
+					fmt.Println(k, "is string", vv)
+				case float64:
+					fmt.Println(k, "is float64", vv)
+				case map[string]interface{}:
+					fmt.Println(k, "is map dingens", vv)
+					c.writeJson(vv)
+				case []interface{}:
+					fmt.Println(k, "is an array:")
+					for i, u := range vv {
+						fmt.Println(i, u)
+					}
+				default:
+					fmt.Println(k, "is of a type I don't know how to handle", vv)
 				}
-			default:
-				fmt.Println(k, "is of a type I don't know how to handle", vv)
 			}
 		}
-	}
-
+	*/
 }
 
 func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDataValues {
