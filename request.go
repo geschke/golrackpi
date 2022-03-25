@@ -3,6 +3,7 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"errors"
 	"fmt"
@@ -395,7 +396,6 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings/"+moduleid), nil)
 	if err != nil {
 		return jsonResult, err
-
 	}
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
@@ -403,13 +403,16 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	response, errMe := client.Do(request)
 	if errMe != nil {
 		return jsonResult, errMe
-
+	}
+	if response.StatusCode != 200 {
+		return jsonResult, errors.New("module or setting not found")
 	}
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
+
 	sb := string(body)
 	fmt.Println("raw body output:")
 	fmt.Println(sb)
@@ -422,42 +425,94 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 
 	}
 
-	//fmt.Println(jsonResult)
 	return jsonResult, nil
-	/*	m, mOk := jsonResult.(map[string]interface{})
-		s, _ := jsonResult.([]interface{})
+}
 
-		//m := jsonResult.(map[string]interface{})
-		if mOk {
-			// Use Map
-			fmt.Println("use map")
-			fmt.Println(m)
-		} else {
-			// Use Slice
-			fmt.Println("use slice")
-			fmt.Println(s)
-			for k, v := range s {
-				fmt.Println(k)
-				fmt.Println(v)
-				switch vv := v.(type) {
-				case string:
-					fmt.Println(k, "is string", vv)
-				case float64:
-					fmt.Println(k, "is float64", vv)
-				case map[string]interface{}:
-					fmt.Println(k, "is map dingens", vv)
-					c.writeJson(vv)
-				case []interface{}:
-					fmt.Println(k, "is an array:")
-					for i, u := range vv {
-						fmt.Println(i, u)
-					}
-				default:
-					fmt.Println(k, "is of a type I don't know how to handle", vv)
-				}
-			}
-		}
-	*/
+func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([]SettingsValues, error) {
+	jsonResult := []SettingsValues{}
+	client := http.Client{}
+
+	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings/"+moduleid+"/"+settingid), nil)
+	if err != nil {
+		return jsonResult, err
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errMe := client.Do(request)
+	if errMe != nil {
+		return jsonResult, errMe
+	}
+	if response.StatusCode != 200 {
+		return jsonResult, errors.New("module or setting not found")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return jsonResult, err
+	}
+
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	//fmt.Println(response.Body)
+
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		return jsonResult, errJson
+
+	}
+
+	return jsonResult, nil
+}
+
+func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids []string) ([]SettingsValues, error) {
+	jsonResult := []SettingsValues{}
+	client := http.Client{}
+
+	//request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
+
+	for i, settingid := range settingids {
+		settingids[i] = strings.TrimSpace(settingid)
+	}
+	csvSettings := strings.Join(settingids, ",")
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings/"+moduleid+"/"+csvSettings), nil)
+	if err != nil {
+		return jsonResult, err
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errMe := client.Do(request)
+	if errMe != nil {
+		return jsonResult, errMe
+	}
+	if response.StatusCode != 200 {
+		return jsonResult, errors.New("module or setting not found")
+	}
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return jsonResult, err
+	}
+
+	sb := string(body)
+	fmt.Println("raw body output:")
+	fmt.Println(sb)
+
+	//fmt.Println(response.Body)
+
+	errJson := json.Unmarshal(body, &jsonResult)
+	if errJson != nil {
+		return jsonResult, errJson
+
+	}
+
+	return jsonResult, nil
 }
 
 func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDataValues {

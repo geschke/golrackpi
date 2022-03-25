@@ -54,7 +54,7 @@ var processdataListCmd = &cobra.Command{
 }
 
 var processdataGetCmd = &cobra.Command{
-	Use: "get [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
+	Use: "get <moduleid> <processdataid(s)> or get <moduleid|processdataid(s)> <moduleid|processdataid(s)> ... ",
 
 	Short: "Get processdata values",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
