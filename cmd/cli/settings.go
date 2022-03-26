@@ -13,13 +13,14 @@ import (
 )
 
 func init() {
-	/*	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password")
-		rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address)")
-		rootCmd.PersistentFlags().StringVarP(&authData.Scheme, "scheme", "m", "", "Scheme (http or https, default http)")
 
-		processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
-		processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
-	*/
+	settingsModuleCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	settingsModuleSettingCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleSettingCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	settingsModuleSettingsCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleSettingsCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+
 	rootCmd.AddCommand(settingsCmd)
 	settingsCmd.AddCommand(settingsListCmd)
 	settingsCmd.AddCommand(settingsModuleCmd)
@@ -149,8 +150,22 @@ func getSettingsModule(args []string) {
 		fmt.Println("An error occurred:", err)
 		return
 	}
-	for _, v := range values {
-		fmt.Println(v.Id, v.Value)
+	writeSettingValues(values)
+}
+
+func writeSettingValues(values []golrackpi.SettingsValues) {
+
+	if csvOutput {
+		fmt.Printf("Id%sValue\n", delimiter)
+		for _, v := range values {
+			fmt.Printf("%s%s%s\n", v.Id, delimiter, v.Value)
+		}
+	} else {
+		fmt.Println("Id\tValue")
+		for _, v := range values {
+			fmt.Printf("%s\t%s\n", v.Id, v.Value)
+		}
+
 	}
 
 }
@@ -188,9 +203,8 @@ func getSettingsModuleSetting(args []string) {
 		fmt.Println("An error occurred:", err)
 		return
 	}
-	for _, v := range values {
-		fmt.Println(v.Id, v.Value)
-	}
+
+	writeSettingValues(values)
 
 }
 
@@ -231,9 +245,7 @@ func getSettingsModuleSettings(args []string) {
 		fmt.Println("An error occurred:", err)
 		return
 	}
-	for _, v := range values {
-		fmt.Println(v.Id, v.Value)
-	}
+	writeSettingValues(values)
 
 }
 
