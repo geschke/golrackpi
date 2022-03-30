@@ -4,11 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"sort"
 	//"time"
 )
 
@@ -28,8 +26,8 @@ type ProcessDataValues struct {
 	ProcessData []ProcessDataValue `json:"processdata"`
 }
 
-func (c *AuthClient) GetProcessDataList() (map[string]ProcessData, error) {
-	processData := make(map[string]ProcessData)
+func (c *AuthClient) ProcessData() ([]ProcessData, error) {
+	processData := []ProcessData{}
 	client := http.Client{}
 
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata"), nil)
@@ -50,57 +48,14 @@ func (c *AuthClient) GetProcessDataList() (map[string]ProcessData, error) {
 	if err != nil {
 		return processData, err
 	}
-	//sb := string(body)
-	//fmt.Println("raw body output:")
-	//fmt.Println(sb)
 
 	//fmt.Println(response.Body)
 	//var resultMe map[string]interface{}
-	var jsonResult interface{}
-	errJson := json.Unmarshal(body, &jsonResult)
+	errJson := json.Unmarshal(body, &processData)
 	if errJson != nil {
 		//fmt.Println(errJson)
 		return processData, errJson
 	}
-	//fmt.Println(jsonResult)
-
-	s, sOk := jsonResult.([]interface{})
-	if !sOk {
-
-		return processData, errors.New("error in conversion of JSON result")
-	}
-
-	// Use Slice
-	//fmt.Println("use slice")
-	//fmt.Println(s)
-	for _, v := range s {
-		//fmt.Println(v)
-		switch vv := v.(type) {
-		case map[string]interface{}:
-
-			moduleid := vv["moduleid"].(string)
-			processdataids := vv["processdataids"].([]interface{})
-			//fmt.Println("moduleid:", moduleid)
-			//fmt.Println("processdataids", processdataids)
-
-			var processDataIds []string
-			for _, p := range processdataids {
-				//fmt.Println("i, p:", i, p)
-				processDataIds = append(processDataIds, p.(string))
-
-			}
-			sort.Strings(processDataIds)
-			processData[moduleid] = ProcessData{ModuleId: moduleid, ProcessDataIds: processDataIds}
-
-			//fmt.Println(vv["moduleid"])
-			//c.writeJson(vv)
-		default:
-
-			return processData, errors.New("unknown returned type in inverter response")
-		}
-	}
-
-	//fmt.Println("Result:", processData)
 
 	return processData, nil
 

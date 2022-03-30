@@ -54,7 +54,7 @@ var processdataListCmd = &cobra.Command{
 }
 
 var processdataGetCmd = &cobra.Command{
-	Use: "get <moduleid> <processdataid(s)> or get <moduleid|processdataid(s)> <moduleid|processdataid(s)> ... ",
+	Use: "get [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
 
 	Short: "Get processdata values",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
@@ -80,32 +80,24 @@ func listProcessdata() {
 
 	defer lib.Logout()
 
-	pd, err := lib.GetProcessDataList()
+	processData, err := lib.ProcessData()
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
-	//fmt.Println("returned: ", pd)
 
-	moduleNames := make([]string, 0, len(pd))
-	for mn := range pd {
-		moduleNames = append(moduleNames, mn)
-	}
-
-	// sort the slice by keys
-	sort.Strings(moduleNames)
-
-	for _, moduleId := range moduleNames {
-		fmt.Println("Module:", moduleId)
-		fmt.Println("ProcessDataIds:")
-		for _, processDataIds := range pd[moduleId].ProcessDataIds {
-			fmt.Println("\t", processDataIds)
-
+	for _, pdItem := range processData {
+		fmt.Println("ModuleId:", pdItem.ModuleId)
+		if len(pdItem.ProcessDataIds) > 0 {
+			fmt.Println("ProcessDataIds:")
+			for _, pdId := range pdItem.ProcessDataIds {
+				fmt.Println("\t", pdId)
+			}
+		} else {
+			fmt.Println("No ProcessDataId found.")
 		}
-		fmt.Println()
-	}
 
-	//fmt.Printf("%-"+fmt.Sprintf("%d", maxStrlen)+"s%-21s%-21s\n", domainname, dtCreated, dtUpdated)
+	}
 
 }
 
