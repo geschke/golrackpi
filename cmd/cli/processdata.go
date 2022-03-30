@@ -8,7 +8,7 @@ import (
 
 	//"log"
 	//"os"
-	"sort"
+
 	"strings"
 )
 
@@ -147,44 +147,37 @@ func getProcessdata(args []string) {
 	_, err := lib.Login()
 	if err != nil {
 		fmt.Println("An error occurred:", err)
-		//panic(err.Error())
+
 		return
 	}
 	defer lib.Logout()
 
-	pdv := lib.GetProcessDataValues(requestProcessData)
-	fmt.Println("processDataValues:", pdv)
-
-	moduleNames := make([]string, 0, len(pdv))
-	for mn := range pdv {
-		moduleNames = append(moduleNames, mn)
+	processDataValues, err := lib.ProcessDataValues(requestProcessData)
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
 	}
-
-	// sort the slice by keys
-	sort.Strings(moduleNames)
 
 	if csvOutput {
 		fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
-		for _, moduleId := range moduleNames {
+		for _, pdv := range processDataValues {
+			for _, pd := range pdv.ProcessData {
 
-			for _, processData := range pdv[moduleId].ProcessData {
-				fmt.Printf("%s%s%s%s%s%s%v\n", moduleId, delimiter, processData.Id, delimiter, processData.Unit, delimiter, processData.Value)
+				fmt.Printf("%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
-
 		}
+
 	} else {
 
-		for _, moduleId := range moduleNames {
-			fmt.Println("Module:", moduleId)
-			fmt.Println("ProcessDataValues (Id\tUnit\tValue):")
-			for _, processData := range pdv[moduleId].ProcessData {
-				fmt.Println(processData.Id, "\t", processData.Unit, "\t", processData.Value)
-				// todo: add better formatting
-
+		for _, pdv := range processDataValues {
+			fmt.Println("Module:", pdv.ModuleId)
+			for _, pd := range pdv.ProcessData {
+				fmt.Println(pd.Id, "\t", pd.Unit, "\t", pd.Value)
 			}
 			fmt.Println()
 		}
+
 	}
 }
 

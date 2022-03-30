@@ -61,7 +61,7 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 
 }
 
-func (c *AuthClient) GetProcessData(moduleId string, processDataId string) {
+func (c *AuthClient) ProcessDataValue(moduleId string, processDataId string) {
 	client := http.Client{}
 
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata/"+moduleId+"/"+processDataId), nil)
@@ -132,20 +132,22 @@ func (c *AuthClient) GetProcessData(moduleId string, processDataId string) {
 
 }
 
-func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDataValues {
-
+func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, error) {
+	processDataValues := []ProcessDataValues{}
 	b, err := json.Marshal(v)
 	if err != nil {
-		fmt.Println("error:", err)
+		return processDataValues, err
+
 	}
 
-	fmt.Println(string(b))
+	//fmt.Println(string(b))
 
 	client := http.Client{}
 
 	request, err := http.NewRequest("POST", c.getUrl("/api/v1/processdata"), bytes.NewBuffer(b))
 	if err != nil {
-		fmt.Println(err)
+		return processDataValues, err
+
 	}
 	request.Header.Add("Content-Type", "application/json")
 
@@ -153,92 +155,91 @@ func (c *AuthClient) GetProcessDataValues(v []ProcessData) map[string]ProcessDat
 
 	response, errReq := client.Do(request)
 	if errReq != nil {
-		fmt.Println(errReq)
+		return processDataValues, errReq
 	}
 	//fmt.Println(response)
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		panic(err)
+		return processDataValues, err
+
 	}
 	//sb := string(body)
 	//fmt.Println("raw body output:")
 	//fmt.Println(sb)
 
-	var jsonResult interface{}
-	errJson := json.Unmarshal(body, &jsonResult)
+	errJson := json.Unmarshal(body, &processDataValues)
 	if errJson != nil {
-		fmt.Println(errJson)
+
+		return processDataValues, errJson
 	}
-	fmt.Println(jsonResult)
+	//fmt.Println(processDataValues)
 
-	m, mOk := jsonResult.(map[string]interface{})
-	s, _ := jsonResult.([]interface{})
-
+	return processDataValues, nil
 	//m := jsonResult.(map[string]interface{})
-	var processDataValues ProcessDataValues
-	resultData := make(map[string]ProcessDataValues)
+	/*
 
-	var moduleid string
-	if mOk {
-		// Use Map
-		fmt.Println("use map")
-		fmt.Println(m)
-	} else {
-		// Use Slice
-		fmt.Println("use slice")
-		fmt.Println(s)
-		for k, v := range s {
-			fmt.Println(k)
-			fmt.Println(v)
-			switch vv := v.(type) {
-			case string:
-				fmt.Println(k, "is string", vv)
-			case float64:
-				fmt.Println(k, "is float64", vv)
-			case map[string]interface{}:
-				fmt.Println(k, "is map dingens", vv)
+		var moduleid string
+		if mOk {
+			// Use Map
+			fmt.Println("use map")
+			fmt.Println(m)
+		} else {
+			// Use Slice
+			fmt.Println("use slice")
+			fmt.Println(s)
+			for k, v := range s {
+				fmt.Println(k)
+				fmt.Println(v)
+				switch vv := v.(type) {
+				case string:
+					fmt.Println(k, "is string", vv)
+				case float64:
+					fmt.Println(k, "is float64", vv)
+				case map[string]interface{}:
+					fmt.Println(k, "is map dingens", vv)
 
-				moduleid = vv["moduleid"].(string)
-				processdata := vv["processdata"].([]interface{})
-				fmt.Println("moduleid:", moduleid)
-				fmt.Println("processdata", processdata)
+					moduleid = vv["moduleid"].(string)
+					processdata := vv["processdata"].([]interface{})
+					fmt.Println("moduleid:", moduleid)
+					fmt.Println("processdata", processdata)
 
-				var processDataValue []ProcessDataValue
-				//var processDataIds []string
-				for i, p := range processdata {
-					fmt.Println("i, p:", i, p)
+					var processDataValue []ProcessDataValue
+					//var processDataIds []string
+					for i, p := range processdata {
+						fmt.Println("i, p:", i, p)
 
-					d := p.(map[string]interface{})
-					fmt.Println("data", d)
+						d := p.(map[string]interface{})
+						fmt.Println("data", d)
 
-					fmt.Println("Unit:", d["unit"])
-					fmt.Println("Id:", d["id"])
+						fmt.Println("Unit:", d["unit"])
+						fmt.Println("Id:", d["id"])
 
-					fmt.Println("Value:", d["value"])
+						fmt.Println("Value:", d["value"])
 
-					pdValue := ProcessDataValue{Unit: d["unit"].(string), Id: d["id"].(string), Value: d["value"]}
-					fmt.Println("pdValue", pdValue)
-					processDataValue = append(processDataValue, pdValue)
-					//processDataIds = append(processDataIds, p.(string))
-					//processData[moduleid].ProcessDataIds = append(processData[moduleid].ProcessDataIds, p)
+						pdValue := ProcessDataValue{Unit: d["unit"].(string), Id: d["id"].(string), Value: d["value"]}
+						fmt.Println("pdValue", pdValue)
+						processDataValue = append(processDataValue, pdValue)
+						//processDataIds = append(processDataIds, p.(string))
+						//processData[moduleid].ProcessDataIds = append(processData[moduleid].ProcessDataIds, p)
+					}
+					//sort.Strings(processDataIds)
+					//processData[moduleid] = ProcessData{ModuleId: moduleid, ProcessDataIds: processDataIds}
+					processDataValues = ProcessDataValues{ModuleId: moduleid, ProcessData: processDataValue}
+					fmt.Println("result", processDataValues)
+
+					//c.writeJson(vv)
+				case []interface{}:
+					fmt.Println(k, "is an array:")
+					for i, u := range vv {
+						fmt.Println(i, u)
+					}
+				default:
+					fmt.Println(k, "is of a type I don't know how to handle", vv)
 				}
-				//sort.Strings(processDataIds)
-				//processData[moduleid] = ProcessData{ModuleId: moduleid, ProcessDataIds: processDataIds}
-				processDataValues = ProcessDataValues{ModuleId: moduleid, ProcessData: processDataValue}
-				fmt.Println("result", processDataValues)
-
-				//c.writeJson(vv)
-			case []interface{}:
-				fmt.Println(k, "is an array:")
-				for i, u := range vv {
-					fmt.Println(i, u)
-				}
-			default:
-				fmt.Println(k, "is of a type I don't know how to handle", vv)
+				resultData[moduleid] = processDataValues
 			}
-			resultData[moduleid] = processDataValues
-		}
 
-	}
-	return resultData
+		}
+		return resultData
+	*/
 }
