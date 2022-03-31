@@ -5,14 +5,14 @@ import (
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
-
 	//"log"
 	//"os"
-	"sort"
 	//"strings"
 )
 
 func init() {
+	modulesListCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	modulesListCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
 	rootCmd.AddCommand(modulesCmd)
 	modulesCmd.AddCommand(modulesListCmd)
@@ -64,20 +64,21 @@ func listModules() {
 		return
 	}
 
-	moduleNames := make([]string, 0, len(modules))
-	for mn := range modules {
-		moduleNames = append(moduleNames, mn)
+	if csvOutput {
+		fmt.Printf("ModuleId%sType\n", delimiter)
+		for _, module := range modules {
+			fmt.Printf("%s%s%s\n", module.Id, delimiter, module.Type)
+
+		}
+
+	} else {
+
+		fmt.Println("Moduleid\tType")
+		for _, module := range modules {
+			fmt.Printf("%s\t%s\n", module.Id, module.Type)
+
+		}
 	}
-
-	// sort the slice by keys
-	sort.Strings(moduleNames)
-
-	fmt.Println("Moduleid, Type")
-	for _, moduleId := range moduleNames {
-		fmt.Printf("%s %s\n", moduleId, modules[moduleId].Type)
-
-	}
-
 }
 
 /*
