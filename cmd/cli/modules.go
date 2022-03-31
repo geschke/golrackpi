@@ -13,13 +13,7 @@ import (
 )
 
 func init() {
-	/*	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password")
-		rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address)")
-		rootCmd.PersistentFlags().StringVarP(&authData.Scheme, "scheme", "m", "", "Scheme (http or https, default http)")
 
-		processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
-		processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
-	*/
 	rootCmd.AddCommand(modulesCmd)
 	modulesCmd.AddCommand(modulesListCmd)
 

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +14,19 @@ var rootCmd = &cobra.Command{
 	Long: `
  golrackpi is a small CLI application to read values from Kostal Plenticore Inverters.
  `,
+}
+
+var authData golrackpi.AuthClient
+var csvOutput bool = false
+var delimiter string = ","
+
+func init() {
+	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")
+	rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address) (required)")
+	rootCmd.PersistentFlags().StringVarP(&authData.Scheme, "scheme", "m", "", "Scheme (http or https, default http)")
+	rootCmd.MarkPersistentFlagRequired("password")
+	rootCmd.MarkPersistentFlagRequired("server")
+
 }
 
 func Exec() {

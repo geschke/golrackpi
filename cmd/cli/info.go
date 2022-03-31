@@ -13,9 +13,6 @@ import (
 
 func init() {
 
-	//processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
-	//processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
-
 	rootCmd.AddCommand(infoCmd)
 	infoCmd.AddCommand(infoVersionCmd)
 	infoCmd.AddCommand(infoMeCmd)

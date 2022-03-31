@@ -6,26 +6,19 @@ import (
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
 
-	//"log"
-	//"os"
-
 	"strings"
 )
 
-var authData golrackpi.AuthClient
-var csvOutput bool = false
-var delimiter string = ","
-
 func init() {
-	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password")
-	rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address)")
-	rootCmd.PersistentFlags().StringVarP(&authData.Scheme, "scheme", "m", "", "Scheme (http or https, default http)")
 
 	processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	processdataMultCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	processdataMultCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
 	rootCmd.AddCommand(processdataCmd)
 	processdataCmd.AddCommand(processdataListCmd)
+	processdataCmd.AddCommand(processdataMultCmd)
 	processdataCmd.AddCommand(processdataGetCmd)
 
 }
@@ -44,7 +37,7 @@ var processdataCmd = &cobra.Command{
 var processdataListCmd = &cobra.Command{
 	Use: "list",
 
-	Short: "List all available processdata and modules",
+	Short: "List all available modules and processdata identifiers",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
 
 	Run: func(cmd *cobra.Command,
@@ -53,12 +46,24 @@ var processdataListCmd = &cobra.Command{
 	},
 }
 
-var processdataGetCmd = &cobra.Command{
-	Use: "get [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
+var processdataMultCmd = &cobra.Command{
+	Use: "mult [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
 
-	Short: "Get processdata values",
+	Short: "Get one or more modules with their processdata values",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
 	Args: cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command,
+		args []string) {
+		getMultProcessdata(args)
+	},
+}
+
+var processdataGetCmd = &cobra.Command{
+	Use: "get [moduleid] [processdataid(s)]",
+
+	Short: "Get module with one or more of its processdata values",
+	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		getProcessdata(args)
@@ -101,7 +106,7 @@ func listProcessdata() {
 
 }
 
-func getProcessdata(args []string) {
+func getMultProcessdata(args []string) {
 
 	// check format of submitted arguments
 	var requestProcessData []golrackpi.ProcessData
@@ -153,6 +158,56 @@ func getProcessdata(args []string) {
 	defer lib.Logout()
 
 	processDataValues, err := lib.ProcessDataValues(requestProcessData)
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+		return
+	}
+
+	if csvOutput {
+		fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+		for _, pdv := range processDataValues {
+			for _, pd := range pdv.ProcessData {
+
+				fmt.Printf("%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+
+			}
+		}
+
+	} else {
+
+		for _, pdv := range processDataValues {
+			fmt.Println("Module:", pdv.ModuleId)
+			for _, pd := range pdv.ProcessData {
+				fmt.Println(pd.Id, "\t", pd.Unit, "\t", pd.Value)
+			}
+			fmt.Println()
+		}
+
+	}
+}
+
+func getProcessdata(args []string) {
+
+	// submitted values: moduleid pdid pdid2 pdid3...
+
+	moduleId := args[0]
+	processDataIds := args[1:]
+
+	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
+		Scheme:   authData.Scheme,
+		Server:   authData.Server,
+		Password: authData.Password,
+	})
+
+	_, err := lib.Login()
+	if err != nil {
+		fmt.Println("An error occurred:", err)
+
+		return
+	}
+	defer lib.Logout()
+
+	processDataValues, err := lib.ProcessDataModuleValues(moduleId, processDataIds...)
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
