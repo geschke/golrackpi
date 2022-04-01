@@ -1,15 +1,18 @@
+// Copyright 2022 Ralf Geschke. All rights reserved.
+// Use of this source code is governed by a MIT-style
+// license that can be found in the LICENSE file.
+
 package golrackpi
 
 import (
-	//"bytes"
 	"encoding/json"
 	"errors"
 
 	"io/ioutil"
 	"net/http"
-	//"sort"
 )
 
+// Version returns information about the API; currently name, hostname, sw_version and api_version
 func (c *AuthClient) Version() (map[string]interface{}, error) {
 	var result map[string]interface{}
 	client := http.Client{}
@@ -35,16 +38,13 @@ func (c *AuthClient) Version() (map[string]interface{}, error) {
 	var jsonResult interface{}
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		//fmt.Println(errJson)
 		return result, errJson
 	}
-	//fmt.Println(jsonResult)
 
 	m, mOk := jsonResult.(map[string]interface{})
 
 	if mOk {
 		return m, nil
-		// Use Map
 	}
 	return result, errors.New("could not read response")
 
