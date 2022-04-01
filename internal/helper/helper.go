@@ -9,12 +9,10 @@ import (
 	"crypto/rand"
 	"crypto/sha256"
 	b64 "encoding/base64"
-
 	mrand "math/rand"
+	"time"
 
 	"golang.org/x/crypto/pbkdf2"
-
-	"time"
 )
 
 var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
@@ -23,6 +21,7 @@ func init() {
 	mrand.Seed(time.Now().UnixNano())
 }
 
+// RandSeq returns a random sequence of letters as string value
 func RandSeq(n int) string {
 	b := make([]rune, n)
 	for i := range b {
@@ -31,16 +30,16 @@ func RandSeq(n int) string {
 	return string(b)
 }
 
+// GetPBKDF2Hash returns a key from the password, salt and iteration count, returning a []byte of length 32
 func GetPBKDF2Hash(password string, salt string, rounds int) []byte {
-	//fmt.Println("in getPBKDF2Hash")
 	// key length 32 for SHA256
 	tmp := pbkdf2.Key([]byte(password), []byte(salt), rounds, 32, sha256.New)
-	//fmt.Println("hash ist:", tmp)
 	return tmp
 }
 
+// GetHMACSHA256 returns a HMAC hash using the SHA256 algorithm as []byte
+// Credits to https://golangcode.com/generate-sha256-hmac/
 func GetHMACSHA256(secret []byte, valueToEncrypt string) []byte {
-	//fmt.Printf("Secret: %s Data: %s\n", secret, valueToEncrypt)
 
 	// Create a new HMAC by defining the hash type and the key (as byte array)
 	h := hmac.New(sha256.New, []byte(secret))
@@ -48,15 +47,16 @@ func GetHMACSHA256(secret []byte, valueToEncrypt string) []byte {
 	// Write Data to it
 	h.Write([]byte(valueToEncrypt))
 	mac := h.Sum(nil)
-	//fmt.Println("MAC:", mac)
 	return mac
 }
 
+// GetSHA256Hash returns a SHA256 checksum of the data as []byte
 func GetSHA256Hash(valueToHash []byte) []byte {
 	hash := sha256.Sum256(valueToHash)
 	return hash[:]
 }
 
+// CreateClientProof returns the client proof computed by client and server signature as base64 encoded string
 func CreateClientProof(clientSignature []byte, serverSignature []byte) string {
 	clientSignatureLength := len(clientSignature)
 	//var result [clientSignatureLength]byte
@@ -74,6 +74,7 @@ func CreateClientProof(clientSignature []byte, serverSignature []byte) string {
 
 }
 
+// GenerateRandomBytes returns random []byte with length n
 func GenerateRandomBytes(n int) ([]byte, error) {
 
 	b := make([]byte, n)

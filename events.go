@@ -7,14 +7,13 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
-
 	"io/ioutil"
 	"net/http"
 
-	//"time"
 	"github.com/geschke/golrackpi/internal/timefix"
 )
 
+// EventData specifies the structure of the response returned by a request to the "events" endpoint
 type EventData struct {
 	Description     string               `json:"description"`
 	Category        string               `json:"category"`
@@ -26,10 +25,10 @@ type EventData struct {
 	IsActive        bool                 `json:"is_active"`
 }
 
-// EventsCustomized returns the latest events with localized descriptions. It takes as arguments
+// EventsCustomized returns the latest events with localized descriptions. It returns a slice of EventData type. It takes as arguments
 // the language string (currently available de-de, en-gb, es-es, fr-fr, hu-hu, it-it, nl-nl, pl-pl, pt-pt, cs-cz, el-gr and zh-cn) and
 // the maximum number of events (default: 10)
-func (c *AuthClient) EventsCustomized(language string, max int) ([]EventData, error) {
+func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, error) {
 	jsonResult := []EventData{}
 	if language == "" {
 		language = "en-gb"
@@ -48,17 +47,14 @@ func (c *AuthClient) EventsCustomized(language string, max int) ([]EventData, er
 
 	b, err := json.Marshal(payload)
 	if err != nil {
-		//fmt.Println("error:", err)
+
 		return jsonResult, err
 	}
-
-	//fmt.Println(string(b))
 
 	client := http.Client{}
 
 	request, err := http.NewRequest("POST", c.getUrl("/api/v1/events/latest"), bytes.NewBuffer(b))
 	if err != nil {
-		//fmt.Println(err)
 		return jsonResult, err
 	}
 	request.Header.Add("Content-Type", "application/json")
@@ -67,32 +63,21 @@ func (c *AuthClient) EventsCustomized(language string, max int) ([]EventData, er
 
 	response, errReq := client.Do(request)
 	if errReq != nil {
-		//fmt.Println(errReq)
 		return jsonResult, err
 	}
-	//fmt.Println(response)
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		//panic(err)
 		return jsonResult, err
 	}
-	//sb := string(body)
-	//fmt.Println("raw body output:")
-	//fmt.Println(sb)
 
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		//fmt.Println("Error in json unmarshalling")
-		//fmt.Println(errJson)
 		return jsonResult, errJson
-
 	}
-	//fmt.Println(jsonResult)
-
 	return jsonResult, nil
-
 }
 
+// EventsCustomized returns the latest events as slice of EventData type
 func (c *AuthClient) Events() ([]EventData, error) {
 	jsonResult := []EventData{}
 
@@ -113,26 +98,12 @@ func (c *AuthClient) Events() ([]EventData, error) {
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
-
 	}
-	//sb := string(body)
-	//fmt.Println("raw body output:")
-	//fmt.Println(sb)
-
-	//fmt.Println(response.Body)
-	//var resultMe map[string]interface{}
-	//jsonResult := []EventData{}
-	//jsonResult interface{}
 
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-		//fmt.Println("Error in json unmarshalling")
-		//fmt.Println(errJson)
 		return jsonResult, errJson
-
 	}
-	//fmt.Println(jsonResult)
 
 	return jsonResult, nil
-
 }

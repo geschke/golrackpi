@@ -9,6 +9,7 @@ import (
 	"time"
 )
 
+// InterterTime defines a time.Time value
 type InverterTime struct {
 	time.Time
 }

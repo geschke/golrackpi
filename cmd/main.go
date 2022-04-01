@@ -8,6 +8,7 @@ import (
 	cmd "github.com/geschke/golrackpi/cmd/cli"
 )
 
+// main is the entrypoint for the golrackpi CLI application
 func main() {
 	cmd.Exec()
 

@@ -84,7 +84,7 @@ func latestCustomEvents() {
 	//fmt.Println("language", language)
 	//fmt.Println("max:", max)
 
-	events, err := lib.EventsCustomized(language, max)
+	events, err := lib.EventsWithParam(language, max)
 
 	if err != nil {
 		fmt.Println("An error occurred:", err)
