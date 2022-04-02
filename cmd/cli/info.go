@@ -9,10 +9,6 @@ import (
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
-	//"log"
-	//"os"
-	//"sort"
-	//"strings"
 )
 
 func init() {

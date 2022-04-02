@@ -26,16 +26,19 @@ const endpointAuthStart string = "/api/v1/auth/start"
 const endpointAuthFinish string = "/api/v1/auth/finish"
 const endpointAuthCreateSession string = "/api/v1/auth/create_session"
 
+// AuthStartRequestType defines the JSON structure of the first step in the authentication process
 type AuthStartRequestType struct {
 	Nonce    string `json:"nonce"`
 	Username string `json:"username"`
 }
 
+// AuthFinishRequestType defines the JSON structure of the second step in the authentication process
 type AuthFinishRequestType struct {
 	TransactionId string `json:"transactionId"`
 	Proof         string `json:"proof"`
 }
 
+// AuthCreateSessionType defines the JSON structure of the last step in the authentication process
 type AuthCreateSessionType struct {
 	TransactionId string `json:"transactionId"`
 	Iv            string `json:"iv"`
@@ -43,6 +46,7 @@ type AuthCreateSessionType struct {
 	Payload       string `json:"payload"`
 }
 
+// AuthClient is the library's instance, it contains the configuration settings with SessionId after successful authentication
 type AuthClient struct {
 	Scheme    string
 	Server    string
@@ -50,6 +54,7 @@ type AuthClient struct {
 	SessionId string
 }
 
+// New returns a blank AuthClient instance with default http scheme
 func New() *AuthClient {
 	client := AuthClient{
 		Scheme:    "http",
@@ -60,6 +65,8 @@ func New() *AuthClient {
 	return &client
 }
 
+// NewWithParameter returns an AuthClient instance.
+// It takes an AuthClient structure as parameter, so it's possible to submit all connection settings in one step.
 func NewWithParameter(param AuthClient) *AuthClient {
 	if param.Scheme == "https" {
 		param.Scheme = "https"
@@ -74,16 +81,18 @@ func NewWithParameter(param AuthClient) *AuthClient {
 	return &client
 }
 
+// SetServer sets the IP address or FQDN of the Kostal inverter
 func (c *AuthClient) SetServer(server string) {
 	c.Server = server
 }
 
+// SetServer sets the password for user access of the Kostal inverter
 func (c *AuthClient) SetPassword(password string) {
 	c.Password = password
 }
 
+// SetServer sets the scheme (http or https) of the Kostal inverter
 func (c *AuthClient) SetScheme(scheme string) {
-	// todo: check strings, allow http or https only
 	if scheme == "https" {
 		scheme = "https"
 	} else {
@@ -92,21 +101,22 @@ func (c *AuthClient) SetScheme(scheme string) {
 	c.Scheme = scheme
 }
 
+// getUrl is a helper function which creates the API URL
 func (c *AuthClient) getUrl(request string) string {
 	return c.Scheme + "://" + c.Server + request
 }
 
+// Login handles the complete authenciation and login process.
+// In case of success it returns the session id.
 func (c *AuthClient) Login() (string, error) {
 
 	randomString := helper.RandSeq(12)
-	//randomString = "LbdaaizCLejX"
 
 	//fmt.Println("randomString:", randomString)
 	base64String := b64.StdEncoding.EncodeToString([]byte(randomString))
 	//fmt.Println("first nonce mit base64:", base64String)
 
-	userName := "user"
-	//userPassword := "" // todo: store in some config
+	userName := "user" // default user name of plant owner
 
 	// create JSON request
 
@@ -126,32 +136,24 @@ func (c *AuthClient) Login() (string, error) {
 
 	// An error is returned if something goes wrong
 	if err != nil {
-		//panic(err)
 		return "", errors.New("could not initiate authentication")
 	}
 	//Need to close the response stream, once response is read.
 	//Hence defer close. It will automatically take care of it.
 	defer resp.Body.Close()
 
-	//Check response code, if New user is created then read response.
-
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//Failed to read response.
 		return "", errors.New("could not read authentication response")
-		//panic(err)
 	}
 
 	// todo: add reaction to existing servers with wrong result
 
-	//Convert bytes to String and print
-	//jsonStr := string(responseBody)
-	//fmt.Println("Response: ", jsonStr)
-
-	foo := bytes.NewReader(responseBody)
+	responseReader := bytes.NewReader(responseBody)
 
 	var result map[string]interface{}
-	json.NewDecoder(foo).Decode(&result)
+	json.NewDecoder(responseReader).Decode(&result)
 	//fmt.Println(result)
 
 	var serverNonce string = result["nonce"].(string)
@@ -160,13 +162,7 @@ func (c *AuthClient) Login() (string, error) {
 	serverSalt := result["salt"].(string)
 	transactionId := result["transactionId"].(string)
 
-	//fmt.Println("nonce:", serverNonce)
-	//fmt.Println("rounds:", rounds)
-	//fmt.Println("salt:", serverSalt)
-	//fmt.Println("transactionId:", transactionId)
-
 	// some magic crypto stuff
-
 	var saltedPassword, clientKey, serverKey, storedKey, clientSignature, serverSignature []byte
 
 	serverSaltDecoded, _ := b64.StdEncoding.DecodeString(serverSalt)
@@ -182,13 +178,6 @@ func (c *AuthClient) Login() (string, error) {
 	serverKey = helper.GetHMACSHA256(saltedPassword, "Server Key")
 
 	storedKey = helper.GetSHA256Hash(clientKey)
-
-	//fmt.Println("clientKey", clientKey)
-	//fmt.Println("hex", fmt.Sprintf("%x", clientKey))
-	//fmt.Println("serverKey:", serverKey)
-	//fmt.Println("hex", fmt.Sprintf("%x", serverKey))
-	//fmt.Println("storedKey:", storedKey)
-	//fmt.Println("hex", fmt.Sprintf("%x", storedKey))
 
 	authMessage := fmt.Sprintf("n=%s,r=%s,r=%s,s=%s,i=%d,c=biws,r=%s", userName, startRequest.Nonce, string(serverNonce), string(serverSalt), rounds, string(serverNonce))
 	//fmt.Println("authMessage", authMessage)
@@ -216,7 +205,6 @@ func (c *AuthClient) Login() (string, error) {
 
 	// An error is returned if something goes wrong
 	if errFinish != nil {
-		//panic(errFinish)
 		return "", errors.New("could not initiate authentication finish request")
 	}
 	//Need to close the response stream, once response is read.
@@ -229,17 +217,12 @@ func (c *AuthClient) Login() (string, error) {
 	if errFinishBody != nil {
 		//Failed to read response.
 		return "", errors.New("could not read from authentication finish request")
-		//panic(errFinishBody)
 	}
 
-	//Convert bytes to String and print
-	//jsonFinishStr := string(responseFinishBody)
-	//fmt.Println("Response Finish: ", jsonFinishStr)
-
-	fooFinish := bytes.NewReader(responseFinishBody)
+	responseFinishReader := bytes.NewReader(responseFinishBody)
 
 	var resultFinish map[string]interface{}
-	json.NewDecoder(fooFinish).Decode(&resultFinish)
+	json.NewDecoder(responseFinishReader).Decode(&resultFinish)
 
 	// signature and token only set when login was successful
 	_, authOkSignature := resultFinish["signature"]
@@ -284,7 +267,7 @@ func (c *AuthClient) Login() (string, error) {
 	block, err := aes.NewCipher(protocolKey)
 	if err != nil {
 		return "", errors.New("cipher creation error " + err.Error())
-		//panic(err.Error())
+
 	}
 
 	//aesgcm, err := cipher.NewGCM(block)
@@ -292,12 +275,9 @@ func (c *AuthClient) Login() (string, error) {
 	// default tag size in Go is 16
 	aesgcm, err := cipher.NewGCMWithNonceSize(block, 16)
 	if err != nil {
-		//panic(err.Error())
+
 		return "", errors.New("cipher error " + err.Error())
 	}
-
-	//ns := aesgcm.NonceSize()
-	//fmt.Println("Nonce size: ", ns)
 
 	var tag []byte
 	//ciphertext := aesgcm.Seal(ivNonce, ivNonce, []byte(token), nil)
@@ -346,21 +326,24 @@ func (c *AuthClient) Login() (string, error) {
 	//jsonCreateSessionStr := string(responseCreateSessionBody)
 	//fmt.Println("Response CreateSession: ", jsonCreateSessionStr)
 
-	fooCreateSession := bytes.NewReader(responseCreateSessionBody)
+	responseCreateSessionReader := bytes.NewReader(responseCreateSessionBody)
 
 	var resultCreateSession map[string]interface{}
-	json.NewDecoder(fooCreateSession).Decode(&resultCreateSession)
-	//fmt.Println(resultCreateSession)
-	sessionId := resultCreateSession["sessionId"].(string)
+	json.NewDecoder(responseCreateSessionReader).Decode(&resultCreateSession)
+	fmt.Println(resultCreateSession)
+	sessionId, sessionOk := resultCreateSession["sessionId"] // .(string)
+	if !sessionOk {
+		return "", errors.New("session id not available")
+	}
 
-	c.SessionId = sessionId
-	return sessionId, nil
+	c.SessionId = sessionId.(string)
+	return c.SessionId, nil
 
 	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
 
 }
 
-// Deletes the current session
+// Logout deletes the current session
 func (c *AuthClient) Logout() (bool, error) {
 
 	client := http.Client{}
@@ -377,33 +360,12 @@ func (c *AuthClient) Logout() (bool, error) {
 		return false, errors.New("logout error")
 	}
 	c.SessionId = ""
-	//fmt.Println("logged out!")
+
 	return true, nil
 
 }
 
-func (c *AuthClient) Request() {
-	client := http.Client{}
-
-	request, err := http.NewRequest("GET", c.getUrl("/api/v1/auth/me"), nil)
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	request.Header.Add("authorization", "Session "+c.SessionId)
-
-	respMe, errMe := client.Do(request)
-	if errMe != nil {
-		fmt.Println(errMe)
-	}
-
-	var resultMe map[string]interface{}
-	json.NewDecoder(respMe.Body).Decode(&resultMe)
-	fmt.Println(resultMe)
-
-}
-
-// Returns information about the user
+// Me returns information about the current user
 func (c *AuthClient) Me() (map[string]interface{}, error) {
 	result := make(map[string]interface{})
 	client := http.Client{}
@@ -434,10 +396,9 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 
 	m, mOk := jsonResult.(map[string]interface{})
 
-	if mOk {
-		return m, nil
-
+	if !mOk {
+		return result, errors.New("could not read response")
 	}
-	return result, errors.New("could not read response")
+	return m, nil
 
 }
