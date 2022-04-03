@@ -330,7 +330,7 @@ func (c *AuthClient) Login() (string, error) {
 
 	var resultCreateSession map[string]interface{}
 	json.NewDecoder(responseCreateSessionReader).Decode(&resultCreateSession)
-	fmt.Println(resultCreateSession)
+	//fmt.Println(resultCreateSession)
 	sessionId, sessionOk := resultCreateSession["sessionId"] // .(string)
 	if !sessionOk {
 		return "", errors.New("session id not available")

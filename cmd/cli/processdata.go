@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
@@ -114,12 +115,14 @@ func getMultProcessdata(args []string) {
 
 	// check format of submitted arguments
 	var requestProcessData []golrackpi.ProcessData
+	errOut := os.Stderr
+	out := os.Stdout
 
 	if strings.Contains(args[0], "|") { // search "|"" separator to request one or more modules with their processdataids
 		for _, argModuleProcessdata := range args {
 			moduleProcessdata := strings.Split(argModuleProcessdata, "|")
 			if len(moduleProcessdata) != 2 {
-				fmt.Println("Wrong format of moduleid and processdataid values.")
+				fmt.Fprintln(errOut, "Wrong format of moduleid and processdataid values.")
 				return
 			}
 			argModuleId := moduleProcessdata[0]
@@ -132,18 +135,18 @@ func getMultProcessdata(args []string) {
 	} else if len(args) == 2 { // else moduleid and processdataids must submitted separately
 		moduleIds := strings.Split(args[0], ",")
 		processdataIds := strings.Split(args[1], ",")
-		fmt.Println("moduleids:", moduleIds)
-		fmt.Println("processdataids:", processdataIds)
+		//fmt.Println("moduleids:", moduleIds)
+		//fmt.Println("processdataids:", processdataIds)
 
 		if len(moduleIds) > 1 {
-			fmt.Println("Please enter only one moduleid.")
+			fmt.Fprintln(errOut, "Please enter only one moduleid.")
 			return
 		}
 		v := golrackpi.ProcessData{ModuleId: moduleIds[0], ProcessDataIds: processdataIds}
 		requestProcessData = append(requestProcessData, v)
 
 	} else {
-		fmt.Println("Please submit module and processdata in an appropriate format.")
+		fmt.Fprintln(errOut, "Please submit module and processdata in an appropriate format.")
 		return
 	}
 
@@ -155,7 +158,7 @@ func getMultProcessdata(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 
 		return
 	}
@@ -163,16 +166,16 @@ func getMultProcessdata(args []string) {
 
 	processDataValues, err := lib.ProcessDataValues(requestProcessData)
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 
 	if csvOutput {
-		fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+		fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
 
-				fmt.Printf("%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+				fmt.Fprintf(out, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
 		}
@@ -180,11 +183,11 @@ func getMultProcessdata(args []string) {
 	} else {
 
 		for _, pdv := range processDataValues {
-			fmt.Println("Module:", pdv.ModuleId)
+			fmt.Fprintln(out, "Module:", pdv.ModuleId)
 			for _, pd := range pdv.ProcessData {
-				fmt.Println(pd.Id, "\t", pd.Unit, "\t", pd.Value)
+				fmt.Fprintln(out, pd.Id, "\t", pd.Unit, "\t", pd.Value)
 			}
-			fmt.Println()
+			fmt.Fprintln(out)
 		}
 
 	}
