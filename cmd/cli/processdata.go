@@ -6,6 +6,7 @@ package cmd
 
 import (
 	"fmt"
+	"io"
 	"os"
 
 	"github.com/geschke/golrackpi"
@@ -20,6 +21,7 @@ func init() {
 	processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataMultCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	processdataMultCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	processdataMultCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
 
 	rootCmd.AddCommand(processdataCmd)
 	processdataCmd.AddCommand(processdataListCmd)
@@ -115,8 +117,22 @@ func getMultProcessdata(args []string) {
 
 	// check format of submitted arguments
 	var requestProcessData []golrackpi.ProcessData
-	errOut := os.Stderr
-	out := os.Stdout
+	var errOut io.Writer = os.Stderr
+	var out io.Writer
+
+	if len(outputFile) > 0 {
+		f, err := os.Create(outputFile) // realy use create? What's with append to file?
+
+		if err != nil {
+			fmt.Fprintln(errOut, "Could not create file ", outputFile)
+			return
+		}
+		out = f
+
+		defer f.Close()
+	} else {
+		out = os.Stdout
+	}
 
 	if strings.Contains(args[0], "|") { // search "|"" separator to request one or more modules with their processdataids
 		for _, argModuleProcessdata := range args {

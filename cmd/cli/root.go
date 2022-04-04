@@ -23,6 +23,7 @@ var rootCmd = &cobra.Command{
 var authData golrackpi.AuthClient
 var csvOutput bool = false
 var delimiter string = ","
+var outputFile string = ""
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")
