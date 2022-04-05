@@ -24,6 +24,7 @@ var authData golrackpi.AuthClient
 var csvOutput bool = false
 var delimiter string = ","
 var outputFile string = ""
+var outputTimestamp bool = false
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"time"
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
@@ -22,6 +23,7 @@ func init() {
 	processdataMultCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	processdataMultCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataMultCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	processdataMultCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
 
 	rootCmd.AddCommand(processdataCmd)
 	processdataCmd.AddCommand(processdataListCmd)
@@ -121,8 +123,8 @@ func getMultProcessdata(args []string) {
 	var out io.Writer
 
 	if len(outputFile) > 0 {
-		f, err := os.Create(outputFile) // realy use create? What's with append to file?
-
+		//f, err := os.Create(outputFile) // realy use create? What's with append to file?
+		f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			fmt.Fprintln(errOut, "Could not create file ", outputFile)
 			return
@@ -187,10 +189,16 @@ func getMultProcessdata(args []string) {
 	}
 
 	if csvOutput {
+		if outputTimestamp {
+			fmt.Fprintf(out, "Timestamp%s", delimiter)
+		}
 		fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
 
+				if outputTimestamp {
+					fmt.Fprintf(out, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+				}
 				fmt.Fprintf(out, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
