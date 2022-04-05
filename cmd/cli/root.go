@@ -25,6 +25,8 @@ var csvOutput bool = false
 var delimiter string = ","
 var outputFile string = ""
 var outputTimestamp bool = false
+var outputAppend bool = false
+var outputNoHeaders bool = false
 
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")

@@ -20,10 +20,17 @@ func init() {
 
 	processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	processdataGetCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	processdataGetCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	processdataGetCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	processdataGetCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
+
 	processdataMultCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
 	processdataMultCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataMultCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
 	processdataMultCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	processdataMultCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	processdataMultCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
 
 	rootCmd.AddCommand(processdataCmd)
 	processdataCmd.AddCommand(processdataListCmd)
@@ -56,7 +63,7 @@ var processdataListCmd = &cobra.Command{
 }
 
 var processdataMultCmd = &cobra.Command{
-	Use: "mult [moduleid] [processdataid(s)] or get [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
+	Use: "mult [moduleid] [processdataid(s)] or mult [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
 
 	Short: "Get one or more modules with their processdata values",
 	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
@@ -122,16 +129,14 @@ func getMultProcessdata(args []string) {
 	var errOut io.Writer = os.Stderr
 	var out io.Writer
 
-	if len(outputFile) > 0 {
-		//f, err := os.Create(outputFile) // realy use create? What's with append to file?
-		f, err := os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			fmt.Fprintln(errOut, "Could not create file ", outputFile)
-			return
-		}
+	f, errFile := getOutFile()
+	if errFile != nil {
+		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+		return
+	}
+	if f != nil {
 		out = f
-
-		defer f.Close()
+		defer closeOutFile(f)
 	} else {
 		out = os.Stdout
 	}
@@ -189,10 +194,12 @@ func getMultProcessdata(args []string) {
 	}
 
 	if csvOutput {
-		if outputTimestamp {
-			fmt.Fprintf(out, "Timestamp%s", delimiter)
+		if !outputNoHeaders {
+			if outputTimestamp {
+				fmt.Fprintf(out, "Timestamp%s", delimiter)
+			}
+			fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		}
-		fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
 
@@ -205,8 +212,13 @@ func getMultProcessdata(args []string) {
 		}
 
 	} else {
-
+		if outputTimestamp {
+			fmt.Fprintf(out, "Timestamp:\t")
+		}
 		for _, pdv := range processDataValues {
+			if outputTimestamp {
+				fmt.Fprintf(out, "%s\n", time.Now().Format(time.RFC3339))
+			}
 			fmt.Fprintln(out, "Module:", pdv.ModuleId)
 			for _, pd := range pdv.ProcessData {
 				fmt.Fprintln(out, pd.Id, "\t", pd.Unit, "\t", pd.Value)
@@ -218,7 +230,20 @@ func getMultProcessdata(args []string) {
 }
 
 func getProcessdata(args []string) {
+	var errOut io.Writer = os.Stderr
+	var out io.Writer
 
+	f, errFile := getOutFile()
+	if errFile != nil {
+		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+		return
+	}
+	if f != nil {
+		out = f
+		defer closeOutFile(f)
+	} else {
+		out = os.Stdout
+	}
 	// submitted values: moduleid pdid pdid2 pdid3...
 
 	moduleId := args[0]
@@ -232,7 +257,7 @@ func getProcessdata(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 
 		return
 	}
@@ -240,28 +265,40 @@ func getProcessdata(args []string) {
 
 	processDataValues, err := lib.ProcessDataModuleValues(moduleId, processDataIds...)
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 
 	if csvOutput {
-		fmt.Printf("Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+		if !outputNoHeaders {
+			if outputTimestamp {
+				fmt.Fprintf(out, "Timestamp%s", delimiter)
+			}
+			fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+		}
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
-
-				fmt.Printf("%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+				if outputTimestamp {
+					fmt.Fprintf(out, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+				}
+				fmt.Fprintf(out, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
 		}
 
 	} else {
-
+		if outputTimestamp {
+			fmt.Fprintf(out, "Timestamp:\t")
+		}
 		for _, pdv := range processDataValues {
-			fmt.Println("Module:", pdv.ModuleId)
-			for _, pd := range pdv.ProcessData {
-				fmt.Println(pd.Id, "\t", pd.Unit, "\t", pd.Value)
+			if outputTimestamp {
+				fmt.Fprintf(out, "%s\n", time.Now().Format(time.RFC3339))
 			}
-			fmt.Println()
+			fmt.Fprintln(out, "Module:", pdv.ModuleId)
+			for _, pd := range pdv.ProcessData {
+				fmt.Fprintln(out, pd.Id, "\t", pd.Unit, "\t", pd.Value)
+			}
+			fmt.Fprintln(out)
 		}
 
 	}
@@ -272,4 +309,35 @@ func getProcessdata(args []string) {
  */
 func handleProcessdata() {
 	fmt.Println("\nUnknown or missing command.\nRun golrackpi processdata --help to show available commands.")
+}
+
+// getOutFile returns a pointer to an opened file if the corresponding flags are set.
+// If the return value is nil, output should be sent to os.Stdout
+func getOutFile() (*os.File, error) {
+	var f *os.File
+	var err error
+	if len(outputFile) > 0 {
+		if outputAppend {
+			f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			f, err = os.Create(outputFile)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return f, nil
+	}
+	return nil, nil
+}
+
+// closeOutFile closes the file and handles errors
+func closeOutFile(f *os.File) {
+	err := f.Close()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 }
