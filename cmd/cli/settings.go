@@ -34,7 +34,7 @@ var settingsCmd = &cobra.Command{
 	Use: "settings",
 
 	Short: "List settings content",
-	//Long:  `Manage dynpower domain entries in database.`,
+	//Long:  ``,
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		handleSettings()
@@ -45,7 +45,7 @@ var settingsListCmd = &cobra.Command{
 	Use: "list",
 
 	Short: "List all modules with their list of settings identifiers.",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -57,7 +57,7 @@ var settingsModuleCmd = &cobra.Command{
 	Use: "module <moduleid>",
 
 	Short: "Get module settings values.",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -69,7 +69,7 @@ var settingsModuleSettingCmd = &cobra.Command{
 	Use: "setting <moduleid> <settingid>",
 
 	Short: "Get module setting value.",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -81,7 +81,7 @@ var settingsModuleSettingsCmd = &cobra.Command{
 	Use: "settings <moduleid> <settingids>",
 
 	Short: "Get module settings values. Use a comma-seperated list of settingids.",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {

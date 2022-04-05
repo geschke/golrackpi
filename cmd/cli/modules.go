@@ -9,9 +9,6 @@ import (
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
-	//"log"
-	//"os"
-	//"strings"
 )
 
 func init() {
@@ -27,7 +24,7 @@ var modulesCmd = &cobra.Command{
 	Use: "modules",
 
 	Short: "List modules content",
-	//Long:  `Manage dynpower domain entries in database.`,
+	//Long:  `...`,
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		handleModules()
@@ -38,7 +35,7 @@ var modulesListCmd = &cobra.Command{
 	Use: "list",
 
 	Short: "List all modules and their type",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {

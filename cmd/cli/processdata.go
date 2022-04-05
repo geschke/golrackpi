@@ -43,7 +43,7 @@ var processdataCmd = &cobra.Command{
 	Use: "processdata",
 
 	Short: "List processdata values",
-	//Long:  `Manage dynpower domain entries in database.`,
+	//Long:  ``,
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		handleProcessdata()
@@ -54,7 +54,7 @@ var processdataListCmd = &cobra.Command{
 	Use: "list",
 
 	Short: "List all available modules and processdata identifiers",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -66,7 +66,7 @@ var processdataMultCmd = &cobra.Command{
 	Use: "mult [moduleid] [processdataid(s)] or mult [moduleid|processdataid(s)] [moduleid|processdataid(s)] ... ",
 
 	Short: "Get one or more modules with their processdata values",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -78,7 +78,7 @@ var processdataGetCmd = &cobra.Command{
 	Use: "get [moduleid] [processdataid(s)]",
 
 	Short: "Get module with one or more of its processdata values",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 	Args: cobra.MinimumNArgs(2),
 	Run: func(cmd *cobra.Command,
 		args []string) {
