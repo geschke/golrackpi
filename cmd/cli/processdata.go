@@ -127,7 +127,7 @@ func getMultProcessdata(args []string) {
 	// check format of submitted arguments
 	var requestProcessData []golrackpi.ProcessData
 	var errOut io.Writer = os.Stderr
-	var out io.Writer
+	var w io.Writer
 
 	f, errFile := getOutFile()
 	if errFile != nil {
@@ -135,10 +135,10 @@ func getMultProcessdata(args []string) {
 		return
 	}
 	if f != nil {
-		out = f
+		w = f
 		defer closeOutFile(f)
 	} else {
-		out = os.Stdout
+		w = os.Stdout
 	}
 
 	if strings.Contains(args[0], "|") { // search "|"" separator to request one or more modules with their processdataids
@@ -158,8 +158,6 @@ func getMultProcessdata(args []string) {
 	} else if len(args) == 2 { // else moduleid and processdataids must submitted separately
 		moduleIds := strings.Split(args[0], ",")
 		processdataIds := strings.Split(args[1], ",")
-		//fmt.Println("moduleids:", moduleIds)
-		//fmt.Println("processdataids:", processdataIds)
 
 		if len(moduleIds) > 1 {
 			fmt.Fprintln(errOut, "Please enter only one moduleid.")
@@ -196,34 +194,34 @@ func getMultProcessdata(args []string) {
 	if csvOutput {
 		if !outputNoHeaders {
 			if outputTimestamp {
-				fmt.Fprintf(out, "Timestamp%s", delimiter)
+				fmt.Fprintf(w, "Timestamp%s", delimiter)
 			}
-			fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+			fmt.Fprintf(w, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		}
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
 
 				if outputTimestamp {
-					fmt.Fprintf(out, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+					fmt.Fprintf(w, "%s%s", time.Now().Format(time.RFC3339), delimiter)
 				}
-				fmt.Fprintf(out, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+				fmt.Fprintf(w, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
 		}
 
 	} else {
 		if outputTimestamp {
-			fmt.Fprintf(out, "Timestamp:\t")
+			fmt.Fprintf(w, "Timestamp:\t")
 		}
 		for _, pdv := range processDataValues {
 			if outputTimestamp {
-				fmt.Fprintf(out, "%s\n", time.Now().Format(time.RFC3339))
+				fmt.Fprintf(w, "%s\n", time.Now().Format(time.RFC3339))
 			}
-			fmt.Fprintln(out, "Module:", pdv.ModuleId)
+			fmt.Fprintln(w, "Module:", pdv.ModuleId)
 			for _, pd := range pdv.ProcessData {
-				fmt.Fprintln(out, pd.Id, "\t", pd.Unit, "\t", pd.Value)
+				fmt.Fprintln(w, pd.Id, "\t", pd.Unit, "\t", pd.Value)
 			}
-			fmt.Fprintln(out)
+			fmt.Fprintln(w)
 		}
 
 	}
@@ -231,7 +229,7 @@ func getMultProcessdata(args []string) {
 
 func getProcessdata(args []string) {
 	var errOut io.Writer = os.Stderr
-	var out io.Writer
+	var w io.Writer
 
 	f, errFile := getOutFile()
 	if errFile != nil {
@@ -239,10 +237,10 @@ func getProcessdata(args []string) {
 		return
 	}
 	if f != nil {
-		out = f
+		w = f
 		defer closeOutFile(f)
 	} else {
-		out = os.Stdout
+		w = os.Stdout
 	}
 	// submitted values: moduleid pdid pdid2 pdid3...
 
@@ -272,33 +270,33 @@ func getProcessdata(args []string) {
 	if csvOutput {
 		if !outputNoHeaders {
 			if outputTimestamp {
-				fmt.Fprintf(out, "Timestamp%s", delimiter)
+				fmt.Fprintf(w, "Timestamp%s", delimiter)
 			}
-			fmt.Fprintf(out, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+			fmt.Fprintf(w, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
 		}
 		for _, pdv := range processDataValues {
 			for _, pd := range pdv.ProcessData {
 				if outputTimestamp {
-					fmt.Fprintf(out, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+					fmt.Fprintf(w, "%s%s", time.Now().Format(time.RFC3339), delimiter)
 				}
-				fmt.Fprintf(out, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+				fmt.Fprintf(w, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
 
 			}
 		}
 
 	} else {
 		if outputTimestamp {
-			fmt.Fprintf(out, "Timestamp:\t")
+			fmt.Fprintf(w, "Timestamp:\t")
 		}
 		for _, pdv := range processDataValues {
 			if outputTimestamp {
-				fmt.Fprintf(out, "%s\n", time.Now().Format(time.RFC3339))
+				fmt.Fprintf(w, "%s\n", time.Now().Format(time.RFC3339))
 			}
-			fmt.Fprintln(out, "Module:", pdv.ModuleId)
+			fmt.Fprintln(w, "Module:", pdv.ModuleId)
 			for _, pd := range pdv.ProcessData {
-				fmt.Fprintln(out, pd.Id, "\t", pd.Unit, "\t", pd.Value)
+				fmt.Fprintln(w, pd.Id, "\t", pd.Unit, "\t", pd.Value)
 			}
-			fmt.Fprintln(out)
+			fmt.Fprintln(w)
 		}
 
 	}
