@@ -15,11 +15,11 @@ import (
 
 func init() {
 
-	settingsModuleCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
-	settingsModuleSettingCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleSettingCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleSettingCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
-	settingsModuleSettingsCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	settingsModuleSettingsCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleSettingsCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
 	rootCmd.AddCommand(settingsCmd)
@@ -156,7 +156,7 @@ func getSettingsModule(args []string) {
 
 func writeSettingValues(values []golrackpi.SettingsValues) {
 
-	if csvOutput {
+	if outputCSV {
 		fmt.Printf("Id%sValue\n", delimiter)
 		for _, v := range values {
 			fmt.Printf("%s%s%s\n", v.Id, delimiter, v.Value)

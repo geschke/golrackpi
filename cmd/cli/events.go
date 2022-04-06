@@ -19,10 +19,10 @@ func init() {
 	eventsCustomCmd.Flags().StringVarP(&language, "language", "l", "", "Language identifier, e.g. en-gb, de-de, fr-fr, ...")
 	eventsCustomCmd.Flags().IntVarP(&max, "max", "x", 0, "Maximum number of events to return (default: 10)")
 
-	eventsCustomCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	eventsCustomCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	eventsCustomCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
-	eventsLatestCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	eventsLatestCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	eventsLatestCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
 	rootCmd.AddCommand(eventsCmd)
@@ -91,7 +91,7 @@ func latestCustomEvents() {
 		return
 	}
 
-	if csvOutput {
+	if outputCSV {
 		fmt.Printf("Description%sCategory%sLongDescription%sStartTime%sGroup%sEndTime%sCode%sIsActive\n", delimiter, delimiter, delimiter, delimiter, delimiter, delimiter, delimiter)
 		for _, event := range events {
 			fmt.Printf("%s%s%s%s%s%s%s%s%s%s%s%s%d%s%t\n", event.Description, delimiter, event.Category, delimiter, event.LongDescription, delimiter, event.StartTime, delimiter, event.Group, delimiter, event.EndTime, delimiter, event.Code, delimiter, event.IsActive)
@@ -126,7 +126,7 @@ func latestEvents() {
 		return
 	}
 
-	if csvOutput {
+	if outputCSV {
 		fmt.Printf("Description%sCategory%sLongDescription%sStartTime%sGroup%sEndTime%sCode%sIsActive\n", delimiter, delimiter, delimiter, delimiter, delimiter, delimiter, delimiter)
 		for _, event := range events {
 			fmt.Printf("%s%s%s%s%s%s%s%s%s%s%s%s%d%s%t\n", event.Description, delimiter, event.Category, delimiter, event.LongDescription, delimiter, event.StartTime, delimiter, event.Group, delimiter, event.EndTime, delimiter, event.Code, delimiter, event.IsActive)

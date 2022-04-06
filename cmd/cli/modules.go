@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	modulesListCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	modulesListCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	modulesListCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 
 	rootCmd.AddCommand(modulesCmd)
@@ -65,7 +65,7 @@ func listModules() {
 		return
 	}
 
-	if csvOutput {
+	if outputCSV {
 		fmt.Printf("ModuleId%sType\n", delimiter)
 		for _, module := range modules {
 			fmt.Printf("%s%s%s\n", module.Id, delimiter, module.Type)

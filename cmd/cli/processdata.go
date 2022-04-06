@@ -18,14 +18,14 @@ import (
 
 func init() {
 
-	processdataGetCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	processdataGetCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataGetCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
 	processdataGetCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
 	processdataGetCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
 	processdataGetCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
 
-	processdataMultCmd.Flags().BoolVarP(&csvOutput, "csv", "c", false, "Set output to CSV format")
+	processdataMultCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	processdataMultCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataMultCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
 	processdataMultCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
@@ -191,7 +191,7 @@ func getMultProcessdata(args []string) {
 		return
 	}
 
-	if csvOutput {
+	if outputCSV {
 		if !outputNoHeaders {
 			if outputTimestamp {
 				fmt.Fprintf(w, "Timestamp%s", delimiter)
@@ -267,7 +267,7 @@ func getProcessdata(args []string) {
 		return
 	}
 
-	if csvOutput {
+	if outputCSV {
 		if !outputNoHeaders {
 			if outputTimestamp {
 				fmt.Fprintf(w, "Timestamp%s", delimiter)
