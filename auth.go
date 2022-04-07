@@ -22,9 +22,11 @@ import (
 	"net/http"
 )
 
-const endpointAuthStart string = "/api/v1/auth/start"
-const endpointAuthFinish string = "/api/v1/auth/finish"
-const endpointAuthCreateSession string = "/api/v1/auth/create_session"
+const (
+	endpointAuthStart         string = "/api/v1/auth/start"
+	endpointAuthFinish        string = "/api/v1/auth/finish"
+	endpointAuthCreateSession string = "/api/v1/auth/create_session"
+)
 
 // AuthStartRequestType defines the JSON structure of the first step in the authentication process
 type AuthStartRequestType struct {
@@ -110,41 +112,30 @@ func (c *AuthClient) getUrl(request string) string {
 // In case of success it returns the session id.
 func (c *AuthClient) Login() (string, error) {
 
+	// prepare step 1 of authentication
 	randomString := helper.RandSeq(12)
-
-	//fmt.Println("randomString:", randomString)
 	base64String := b64.StdEncoding.EncodeToString([]byte(randomString))
-	//fmt.Println("first nonce mit base64:", base64String)
 
 	userName := "user" // default user name of plant owner
 
-	// create JSON request
-
+	// create JSON authentication request
 	startRequest := AuthStartRequestType{
 		Nonce:    base64String,
 		Username: userName,
 	}
 
-	//Convert User to byte using Json.Marshal
-	//Ignoring error.
 	body, _ := json.Marshal(startRequest)
 
-	//fmt.Println(bytes.NewBuffer(body))
-	//fmt.Println(string(body))
-
+	// send step 1 authentication request
 	resp, err := http.Post(c.getUrl(endpointAuthStart), "application/json", bytes.NewBuffer(body))
 
-	// An error is returned if something goes wrong
 	if err != nil {
 		return "", errors.New("could not initiate authentication")
 	}
-	//Need to close the response stream, once response is read.
-	//Hence defer close. It will automatically take care of it.
 	defer resp.Body.Close()
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		//Failed to read response.
 		return "", errors.New("could not read authentication response")
 	}
 
@@ -154,43 +145,30 @@ func (c *AuthClient) Login() (string, error) {
 
 	var result map[string]interface{}
 	json.NewDecoder(responseReader).Decode(&result)
-	//fmt.Println(result)
 
-	var serverNonce string = result["nonce"].(string)
-	//rounds, _ := strconv.Atoi(result["rounds"].(string))
+	// expect a result with the following map entries
+	serverNonce := result["nonce"].(string)
 	rounds := int64(result["rounds"].(float64))
 	serverSalt := result["salt"].(string)
 	transactionId := result["transactionId"].(string)
 
-	// some magic crypto stuff
+	// do some magic crypto stuff
 	var saltedPassword, clientKey, serverKey, storedKey, clientSignature, serverSignature []byte
 
 	serverSaltDecoded, _ := b64.StdEncoding.DecodeString(serverSalt)
-	//fmt.Println("Salt decoded:", serverSaltDecoded)
-	//fmt.Println("salt decoded hex", fmt.Sprintf("%x", serverSaltDecoded))
 
 	saltedPassword = helper.GetPBKDF2Hash(c.Password, string(serverSaltDecoded), int(rounds))
-	//fmt.Println("Salted Password:", saltedPassword)
-	//fmt.Println("salted hex", fmt.Sprintf("%x", saltedPassword))
-
 	clientKey = helper.GetHMACSHA256(saltedPassword, "Client Key")
-
 	serverKey = helper.GetHMACSHA256(saltedPassword, "Server Key")
-
 	storedKey = helper.GetSHA256Hash(clientKey)
 
 	authMessage := fmt.Sprintf("n=%s,r=%s,r=%s,s=%s,i=%d,c=biws,r=%s", userName, startRequest.Nonce, string(serverNonce), string(serverSalt), rounds, string(serverNonce))
-	//fmt.Println("authMessage", authMessage)
-	// bis hierhin ok
 
 	clientSignature = helper.GetHMACSHA256(storedKey, authMessage)
 	serverSignature = helper.GetHMACSHA256(serverKey, authMessage)
-	//fmt.Println("clientSignature", clientSignature)
-	//fmt.Println("serverSignature", serverSignature)
-
 	clientProof := helper.CreateClientProof(clientSignature, clientKey)
-	//fmt.Println("clientProof:", clientProof)
-	// Perform step 2 of the authentication
+
+	// Perform step 2 of the authentication process
 
 	finishRequest := AuthFinishRequestType{
 		TransactionId: transactionId,
@@ -322,16 +300,12 @@ func (c *AuthClient) Login() (string, error) {
 		return "", errors.New("could not read from create session request")
 	}
 
-	//Convert bytes to String and print
-	//jsonCreateSessionStr := string(responseCreateSessionBody)
-	//fmt.Println("Response CreateSession: ", jsonCreateSessionStr)
-
 	responseCreateSessionReader := bytes.NewReader(responseCreateSessionBody)
 
 	var resultCreateSession map[string]interface{}
 	json.NewDecoder(responseCreateSessionReader).Decode(&resultCreateSession)
-	//fmt.Println(resultCreateSession)
-	sessionId, sessionOk := resultCreateSession["sessionId"] // .(string)
+
+	sessionId, sessionOk := resultCreateSession["sessionId"]
 	if !sessionOk {
 		return "", errors.New("session id not available")
 	}

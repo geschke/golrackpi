@@ -80,7 +80,7 @@ var settingsModuleSettingCmd = &cobra.Command{
 var settingsModuleSettingsCmd = &cobra.Command{
 	Use: "settings <moduleid> <settingids>",
 
-	Short: "Get module settings values. Use a comma-seperated list of settingids.",
+	Short: "Get module settings values. Use a comma-separated list of settingids.",
 	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
@@ -212,10 +212,10 @@ func getSettingsModuleSetting(args []string) {
 func getSettingsModuleSettings(args []string) {
 
 	if len(args) < 2 {
-		fmt.Println("Please submit a moduleid and s comma-seperated list of settingids.")
+		fmt.Println("Please submit a moduleid and s comma-separated list of settingids.")
 		return
 	} else if len(args) > 2 {
-		fmt.Println("Please submit only one moduleid with its settingids as comma-seperated list.")
+		fmt.Println("Please submit only one moduleid with its settingids as comma-separated list.")
 		return
 	}
 
