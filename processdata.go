@@ -43,20 +43,17 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 
 	response, errMe := client.Do(request)
 	if errMe != nil {
-
 		return processData, errMe
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return processData, err
 	}
 
-	//fmt.Println(response.Body)
-	//var resultMe map[string]interface{}
 	errJson := json.Unmarshal(body, &processData)
 	if errJson != nil {
-		//fmt.Println(errJson)
 		return processData, errJson
 	}
 
@@ -88,8 +85,12 @@ func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...
 	if errMe != nil {
 		return processDataValues, errMe
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return processDataValues, err
+	}
 
 	errJson := json.Unmarshal(body, &processDataValues)
 	if errJson != nil {
@@ -121,6 +122,7 @@ func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, er
 	if errReq != nil {
 		return processDataValues, errReq
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {

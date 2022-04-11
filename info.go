@@ -34,6 +34,7 @@ func (c *AuthClient) Version() (map[string]interface{}, error) {
 	if err != nil {
 		return result, err
 	}
+	defer response.Body.Close()
 
 	var jsonResult interface{}
 	errJson := json.Unmarshal(body, &jsonResult)

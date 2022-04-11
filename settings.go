@@ -153,10 +153,10 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids []string
 	if errMe != nil {
 		return jsonResult, errMe
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return jsonResult, errors.New("module or setting not found")
 	}
-	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
