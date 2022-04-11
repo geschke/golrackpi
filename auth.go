@@ -128,29 +128,37 @@ func (c *AuthClient) Login() (string, error) {
 
 	// send step 1 authentication request
 	resp, err := http.Post(c.getUrl(endpointAuthStart), "application/json", bytes.NewBuffer(body))
-
 	if err != nil {
 		return "", errors.New("could not initiate authentication")
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != 200 {
+		return "", errors.New("request returned with http error " + resp.Status)
+	}
 
 	responseBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return "", errors.New("could not read authentication response")
 	}
 
-	// todo: add reaction to existing servers with wrong result
-
 	responseReader := bytes.NewReader(responseBody)
 
 	var result map[string]interface{}
 	json.NewDecoder(responseReader).Decode(&result)
 
-	// expect a result with the following map entries
-	serverNonce := result["nonce"].(string)
-	rounds := int64(result["rounds"].(float64))
-	serverSalt := result["salt"].(string)
-	transactionId := result["transactionId"].(string)
+	// expect a result with the following map entries, check existence
+	serverNonceResp, serverNonceOk := result["nonce"]
+	roundsResp, roundsOk := result["rounds"]
+	serverSaltResp, serverSaltOk := result["salt"]
+	transactionIdResp, transactionIdOk := result["transactionId"]
+
+	if !serverNonceOk || !roundsOk || !serverSaltOk || !transactionIdOk {
+		return "", errors.New("authentication response has wrong format")
+	}
+	serverNonce := serverNonceResp.(string)
+	rounds := int64(roundsResp.(float64))
+	serverSalt := serverSaltResp.(string)
+	transactionId := transactionIdResp.(string)
 
 	// do some magic crypto stuff
 	var saltedPassword, clientKey, serverKey, storedKey, clientSignature, serverSignature []byte
@@ -177,19 +185,16 @@ func (c *AuthClient) Login() (string, error) {
 
 	finishRequestBody, _ := json.Marshal(finishRequest)
 
-	//fmt.Println(string(finishRequestBody))
-
 	respFinish, errFinish := http.Post(c.getUrl(endpointAuthFinish), "application/json", bytes.NewBuffer(finishRequestBody))
 
-	// An error is returned if something goes wrong
 	if errFinish != nil {
 		return "", errors.New("could not initiate authentication finish request")
 	}
-	//Need to close the response stream, once response is read.
-	//Hence defer close. It will automatically take care of it.
-	defer respFinish.Body.Close()
+	if respFinish.StatusCode != 200 {
+		return "", errors.New("request returned with http error " + respFinish.Status)
+	}
 
-	//Check response code, if New user is created then read response.
+	defer respFinish.Body.Close()
 
 	responseFinishBody, errFinishBody := ioutil.ReadAll(respFinish.Body)
 	if errFinishBody != nil {
@@ -213,19 +218,10 @@ func (c *AuthClient) Login() (string, error) {
 	signature, _ := b64.StdEncoding.DecodeString(signatureStr)
 	token := resultFinish["token"].(string)
 
-	//fmt.Println("Signature", signature)
-	//fmt.Println("hex", fmt.Sprintf("%x", signature))
-
-	//fmt.Println("token", token)
-
 	cmpBytes := bytes.Compare(signature, serverSignature)
-	//fmt.Println("compared:", cmpBytes)
 
 	if cmpBytes != 0 {
-		//fmt.Println("signature and serverSignature are not equal!")
 		return "", errors.New("signature check error")
-		//os.Exit(1)
-
 	}
 
 	h := hmac.New(sha256.New, []byte(storedKey))
@@ -235,12 +231,8 @@ func (c *AuthClient) Login() (string, error) {
 	h.Write([]byte(clientKey))
 
 	protocolKey := h.Sum(nil)
-	//fmt.Println("MAC / protocol key:", protocolKey)
-	//fmt.Println("hex", fmt.Sprintf("%x", protocolKey))
 
 	ivNonce, _ := helper.GenerateRandomBytes(16)
-	//fmt.Println("iv / random bytes", ivNonce)
-	//fmt.Println("hex", fmt.Sprintf("%x", ivNonce))
 
 	block, err := aes.NewCipher(protocolKey)
 	if err != nil {
@@ -248,26 +240,20 @@ func (c *AuthClient) Login() (string, error) {
 
 	}
 
-	//aesgcm, err := cipher.NewGCM(block)
-	//aesgcm, err := cipher.NewGCMWithNonceSize(block, 16)
 	// default tag size in Go is 16
 	aesgcm, err := cipher.NewGCMWithNonceSize(block, 16)
 	if err != nil {
-
 		return "", errors.New("cipher error " + err.Error())
 	}
 
 	var tag []byte
-	//ciphertext := aesgcm.Seal(ivNonce, ivNonce, []byte(token), nil)
 	ciphertext := aesgcm.Seal(nil, ivNonce, []byte(token), nil)
-	//fmt.Println("ciphertext:", ciphertext)
-	//fmt.Printf("%x\n", ciphertext)
+
 	// golang appends tag at the end of ciphertext, so we have to extract it
+	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
 	ciphertext, tag = ciphertext[:len(ciphertext)-16], ciphertext[len(ciphertext)-16:]
-	//fmt.Println("ciphertext ohne:", ciphertext)
-	//fmt.Printf("%x\n", ciphertext)
-	//fmt.Println("tag:", tag)
-	//fmt.Printf("%x\n", tag)
+
+	// perform step 3 of authentication request to get session id
 
 	createSessionRequest := AuthCreateSessionType{
 		TransactionId: transactionId,
@@ -278,25 +264,19 @@ func (c *AuthClient) Login() (string, error) {
 
 	createSessionRequestBody, _ := json.Marshal(createSessionRequest)
 
-	//fmt.Println(string(createSessionRequestBody))
-
 	respCreateSession, errCreateSession := http.Post(c.getUrl(endpointAuthCreateSession), "application/json", bytes.NewBuffer(createSessionRequestBody))
 
-	// An error is returned if something goes wrong
 	if errCreateSession != nil {
 		return "", errors.New("could not create session")
 
 	}
-	//Need to close the response stream, once response is read.
-	//Hence defer close. It will automatically take care of it.
+	if respCreateSession.StatusCode != 200 {
+		return "", errors.New("request returned with http error " + respCreateSession.Status)
+	}
 	defer respCreateSession.Body.Close()
-
-	//Check response code, if New user is created then read response.
 
 	responseCreateSessionBody, errCreateSessionBody := ioutil.ReadAll(respCreateSession.Body)
 	if errCreateSessionBody != nil {
-		//Failed to read response.
-
 		return "", errors.New("could not read from create session request")
 	}
 
@@ -312,8 +292,6 @@ func (c *AuthClient) Login() (string, error) {
 
 	c.SessionId = sessionId.(string)
 	return c.SessionId, nil
-
-	// see https://stackoverflow.com/questions/68350301/extract-tag-from-cipher-aes-256-gcm-golang
 
 }
 
@@ -333,6 +311,8 @@ func (c *AuthClient) Logout() (bool, error) {
 	if errReq != nil || response.StatusCode != 200 {
 		return false, errors.New("logout error")
 	}
+	defer response.Body.Close()
+
 	c.SessionId = ""
 
 	return true, nil
@@ -346,7 +326,7 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/auth/me"), nil)
 	if err != nil {
-		fmt.Println(err)
+		return result, err
 	}
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
@@ -354,17 +334,15 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 	response, errMe := client.Do(request)
 	if errMe != nil {
 		return result, errMe
-
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
-		return result, err
 	}
 	var jsonResult interface{}
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
-
 		return result, errJson
 	}
 

@@ -11,11 +11,13 @@ import (
 	"net/http"
 )
 
+// ModuleData specifies the structure of the response returned by a request to the "modules" endpoint
 type ModuleData struct {
 	Id   string
 	Type string
 }
 
+// Modules returns a list of modules with their type
 func (c *AuthClient) Modules() ([]ModuleData, error) {
 	moduleData := []ModuleData{}
 	client := http.Client{}
@@ -31,6 +33,7 @@ func (c *AuthClient) Modules() ([]ModuleData, error) {
 	if errMe != nil {
 		return moduleData, errMe
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {

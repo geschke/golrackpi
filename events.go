@@ -65,6 +65,8 @@ func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, err
 	if errReq != nil {
 		return jsonResult, err
 	}
+	defer response.Body.Close()
+
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
@@ -94,6 +96,7 @@ func (c *AuthClient) Events() ([]EventData, error) {
 	if errMe != nil {
 		return jsonResult, errMe
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
