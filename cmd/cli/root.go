@@ -16,7 +16,7 @@ var rootCmd = &cobra.Command{
 	Use:   "golrackpi",
 	Short: "Go Client for Kostal Plenticore Inverters",
 	Long: `
- golrackpi is a small CLI application to read values from Kostal Plenticore Inverters.
+ golrackpi is a small CLI application to read different values from Kostal Plenticore Inverters.
  `,
 }
 
@@ -31,6 +31,7 @@ var (
 	outputNoHeaders bool   = false
 )
 
+// init sets the global flags and their options
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")
 	rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address) (required)")

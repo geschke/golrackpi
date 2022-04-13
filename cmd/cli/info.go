@@ -24,7 +24,7 @@ var infoCmd = &cobra.Command{
 	Use: "info",
 
 	Short: "Returns miscellaneous information",
-	//Long:  `Manage dynpower domain entries in database.`,
+	//Long:  ``,
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		handleInfo()
@@ -35,7 +35,7 @@ var infoVersionCmd = &cobra.Command{
 	Use: "version",
 
 	Short: "Returns information about the API",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -43,6 +43,31 @@ var infoVersionCmd = &cobra.Command{
 	},
 }
 
+var infoMeCmd = &cobra.Command{
+	Use: "me",
+
+	Short: "Returns information about the user",
+	//Long:  ``,
+
+	Run: func(cmd *cobra.Command,
+		args []string) {
+		infoMe()
+	},
+}
+
+var checkLoginLogoutCmd = &cobra.Command{
+	Use: "checklog",
+
+	Short: "Check login and logout process, prints information about the user after login and logout",
+	//Long:  ``,
+
+	Run: func(cmd *cobra.Command,
+		args []string) {
+		checkLoginLogout()
+	},
+}
+
+// infoVersion prints information about the API (i.e. hostname, api version...)
 func infoVersion() {
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -56,6 +81,7 @@ func infoVersion() {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	info, err := lib.Version()
 	if err != nil {
@@ -69,18 +95,7 @@ func infoVersion() {
 
 }
 
-var infoMeCmd = &cobra.Command{
-	Use: "me",
-
-	Short: "Returns information about the user",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
-
-	Run: func(cmd *cobra.Command,
-		args []string) {
-		infoMe()
-	},
-}
-
+// infoMe prints information about the user
 func infoMe() {
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -89,11 +104,11 @@ func infoMe() {
 	})
 
 	_, err := lib.Login()
-
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	info, err := lib.Me()
 	if err != nil {
@@ -107,18 +122,7 @@ func infoMe() {
 
 }
 
-var checkLoginLogoutCmd = &cobra.Command{
-	Use: "checklog",
-
-	Short: "Check login and logout process",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
-
-	Run: func(cmd *cobra.Command,
-		args []string) {
-		checkLoginLogout()
-	},
-}
-
+// checkLoginLogout checks login and logout process. It prints information from the "me" request with values about the user after login and logout.
 func checkLoginLogout() {
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -133,7 +137,7 @@ func checkLoginLogout() {
 		return
 	}
 
-	fmt.Println("logged in!")
+	fmt.Println("Logged in!")
 
 	info, err := lib.Me()
 	if err != nil {
@@ -145,8 +149,8 @@ func checkLoginLogout() {
 		fmt.Printf("%s: %v\n", k, v)
 	}
 
-	loggedOut, err := lib.Logout()
-	fmt.Println("logout? ", loggedOut)
+	_, err = lib.Logout()
+
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
@@ -165,9 +169,7 @@ func checkLoginLogout() {
 
 }
 
-/*
-* Handle processdata-related commands
- */
+// Handle info-related commands
 func handleInfo() {
 	fmt.Println("\nUnknown or missing command.\nRun golrackpi info --help to show available commands.")
 }

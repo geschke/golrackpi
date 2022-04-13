@@ -89,6 +89,7 @@ var settingsModuleSettingsCmd = &cobra.Command{
 	},
 }
 
+// listSettings prints a (huge) list of module ids with their corresponding setting ids
 func listSettings() {
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -119,6 +120,7 @@ func listSettings() {
 
 }
 
+// getSettingsModule takes a module id as argument and prints setting ids and their current values
 func getSettingsModule(args []string) {
 
 	if len(args) < 1 {
@@ -138,12 +140,11 @@ func getSettingsModule(args []string) {
 	})
 
 	_, err := lib.Login()
-	defer lib.Logout()
-
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	values, err := lib.SettingsModule(moduleId)
 
@@ -154,23 +155,7 @@ func getSettingsModule(args []string) {
 	writeSettingValues(values)
 }
 
-func writeSettingValues(values []golrackpi.SettingsValues) {
-
-	if outputCSV {
-		fmt.Printf("Id%sValue\n", delimiter)
-		for _, v := range values {
-			fmt.Printf("%s%s%s\n", v.Id, delimiter, v.Value)
-		}
-	} else {
-		fmt.Println("Id\tValue")
-		for _, v := range values {
-			fmt.Printf("%s\t%s\n", v.Id, v.Value)
-		}
-
-	}
-
-}
-
+// getSettingsModuleSetting takes a module id and a setting id as arguments and prints setting ids and their current value
 func getSettingsModuleSetting(args []string) {
 
 	if len(args) < 2 {
@@ -191,12 +176,11 @@ func getSettingsModuleSetting(args []string) {
 	})
 
 	_, err := lib.Login()
-	defer lib.Logout()
-
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	values, err := lib.SettingsModuleSetting(moduleId, settingId)
 
@@ -209,6 +193,7 @@ func getSettingsModuleSetting(args []string) {
 
 }
 
+// getSettingsModuleSettings takes a module id and one or more setting ids as arguments and prints setting ids and their current value
 func getSettingsModuleSettings(args []string) {
 
 	if len(args) < 2 {
@@ -220,9 +205,6 @@ func getSettingsModuleSettings(args []string) {
 	}
 
 	settingIds := strings.Split(args[1], ",")
-	for _, settingId := range settingIds {
-		fmt.Println("SettingId:", settingId)
-	}
 
 	moduleId := args[0]
 
@@ -233,12 +215,11 @@ func getSettingsModuleSettings(args []string) {
 	})
 
 	_, err := lib.Login()
-	defer lib.Logout()
-
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	values, err := lib.SettingsModuleSettings(moduleId, settingIds)
 
@@ -247,6 +228,24 @@ func getSettingsModuleSettings(args []string) {
 		return
 	}
 	writeSettingValues(values)
+
+}
+
+// writeSettingValues is a helper function to print a slice of setting ids and their value
+func writeSettingValues(values []golrackpi.SettingsValues) {
+
+	if outputCSV {
+		fmt.Printf("Id%sValue\n", delimiter)
+		for _, v := range values {
+			fmt.Printf("%s%s%s\n", v.Id, delimiter, v.Value)
+		}
+	} else {
+		fmt.Println("Id\tValue")
+		for _, v := range values {
+			fmt.Printf("%s\t%s\n", v.Id, v.Value)
+		}
+
+	}
 
 }
 

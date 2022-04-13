@@ -13,6 +13,7 @@ import (
 	"net/http"
 )
 
+// ProcessData specifies the structure of the response returned by a request to the "processdata" endpoint
 type ProcessData struct {
 	ModuleId       string   `json:"moduleid"`
 	ProcessDataIds []string `json:"processdataids"`
@@ -29,6 +30,7 @@ type ProcessDataValues struct {
 	ProcessData []ProcessDataValue `json:"processdata"`
 }
 
+// ProcessData returns a slice of ProcessData type, i.e. a list of modules with a list of their process-data identifiers
 func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 	processData := []ProcessData{}
 	client := http.Client{}

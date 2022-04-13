@@ -43,6 +43,7 @@ var modulesListCmd = &cobra.Command{
 	},
 }
 
+// listModules prints a list of modules with its corresponding type
 func listModules() {
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -50,14 +51,12 @@ func listModules() {
 		Password: authData.Password,
 	})
 
-	ok, err := lib.Login()
-	defer lib.Logout()
-
-	fmt.Println("Ok?", ok)
+	_, err := lib.Login()
 	if err != nil {
 		fmt.Println("An error occurred:", err)
 		return
 	}
+	defer lib.Logout()
 
 	modules, err := lib.Modules()
 	if err != nil {
@@ -82,9 +81,7 @@ func listModules() {
 	}
 }
 
-/*
-* Handle processdata-related commands
- */
+// Handle modules-related commands
 func handleModules() {
 	fmt.Println("\nUnknown or missing command.\nRun golrackpi modules --help to show available commands.")
 }

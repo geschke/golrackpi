@@ -35,7 +35,7 @@ var eventsCmd = &cobra.Command{
 	Use: "events",
 
 	Short: "Get the latest events",
-	//Long:  `Manage dynpower domain entries in database.`,
+	//Long:  ``,
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		handleEvents()
@@ -46,7 +46,7 @@ var eventsLatestCmd = &cobra.Command{
 	Use: "latest",
 
 	Short: "Get the latest events",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -58,7 +58,7 @@ var eventsCustomCmd = &cobra.Command{
 	Use: "custom",
 
 	Short: "Get the latest events, customized by language and number of returned events",
-	//Long:  `List all domains in the dynpower database. If a DSN is submitted by the flag --dsn, this DSN will be used. If no DSN is provided, dynpower-cli tries to use the environment variables DBHOST, DBUSER, DBNAME and DBPASSWORD.`,
+	//Long:  ``,
 
 	Run: func(cmd *cobra.Command,
 		args []string) {
@@ -66,6 +66,8 @@ var eventsCustomCmd = &cobra.Command{
 	},
 }
 
+// latestCustomEvents prints the latest events with customized setting of language identifier (default: en-gb) and maximum number of
+// events (default: 10)
 func latestCustomEvents() {
 
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
@@ -80,9 +82,6 @@ func latestCustomEvents() {
 		return
 	}
 	defer lib.Logout()
-
-	//fmt.Println("language", language)
-	//fmt.Println("max:", max)
 
 	events, err := lib.EventsWithParam(language, max)
 
@@ -105,6 +104,7 @@ func latestCustomEvents() {
 	}
 }
 
+// latestEvents prints the latest events returned by the default "events" request
 func latestEvents() {
 
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
@@ -139,9 +139,7 @@ func latestEvents() {
 	}
 }
 
-/*
-* Handle events-related commands
- */
+// Handle events-related commands
 func handleEvents() {
 	fmt.Println("\nUnknown or missing command.\nRun golrackpi events --help to show available commands.")
 }

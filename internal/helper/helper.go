@@ -59,19 +59,11 @@ func GetSHA256Hash(valueToHash []byte) []byte {
 // CreateClientProof returns the client proof computed by client and server signature as base64 encoded string
 func CreateClientProof(clientSignature []byte, serverSignature []byte) string {
 	clientSignatureLength := len(clientSignature)
-	//var result [clientSignatureLength]byte
 	result := make([]byte, clientSignatureLength)
-	//fmt.Println("clientSignature:", clientSignature)
-	//fmt.Println("serverSignature:", serverSignature)
-	//fmt.Println("Length clientSignature", len(clientSignature))
-	//result = new byte[clientSignature.length];
 	for i := 0; i < len(clientSignature); i++ {
 		result[i] = (byte(0xff & (clientSignature[i] ^ serverSignature[i])))
 	}
-	//fmt.Println("result:", result)
-
 	return b64.StdEncoding.EncodeToString(result)
-
 }
 
 // GenerateRandomBytes returns random []byte with length n
