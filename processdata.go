@@ -19,12 +19,15 @@ type ProcessData struct {
 	ProcessDataIds []string `json:"processdataids"`
 }
 
+// ProcessDataValue specifies the structure of a single processdata value with its Unit, Processdata-ID and Value
 type ProcessDataValue struct {
 	Unit  string      `json:"unit"`
 	Id    string      `json:"id"`
 	Value interface{} `json:"value"`
 }
 
+// ProcessDataValues specifies the structure of the response returned by a request for processdata with moduleid and
+// a slice of ProcessDataValue which contains the fields Unid, Id and Value
 type ProcessDataValues struct {
 	ModuleId    string             `json:"moduleid"`
 	ProcessData []ProcessDataValue `json:"processdata"`
@@ -63,6 +66,41 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 
 }
 
+// ProcessDataModule returns a slice of ProcessDataValues returned by the request to the "processdata/moduleid" endpoint.
+// It takes a moduleid and returns all processdata ids and their values according to the moduleid.
+func (c *AuthClient) ProcessDataModule(moduleId string) ([]ProcessDataValues, error) {
+	processDataValues := []ProcessDataValues{}
+	client := http.Client{}
+
+	request, err := http.NewRequest("GET", c.getUrl("/api/v1/processdata/"+moduleId), nil)
+	if err != nil {
+		return processDataValues, err
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+
+	response, errMe := client.Do(request)
+	if errMe != nil {
+		return processDataValues, errMe
+	}
+	defer response.Body.Close()
+
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return processDataValues, err
+	}
+
+	errJson := json.Unmarshal(body, &processDataValues)
+	if errJson != nil {
+		return processDataValues, errJson
+	}
+
+	return processDataValues, nil
+
+}
+
+// ProcessDataModuleValues returns a slice of ProcessDataValues returned by a request of moduleid and one or more of the processdataids which
+// is handled by the module.
 func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...string) ([]ProcessDataValues, error) {
 	processDataValues := []ProcessDataValues{}
 	client := http.Client{}

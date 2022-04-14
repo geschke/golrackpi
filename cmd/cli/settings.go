@@ -6,6 +6,9 @@ package cmd
 
 import (
 	"fmt"
+	"io"
+	"os"
+	"time"
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
@@ -15,10 +18,24 @@ func init() {
 
 	settingsModuleCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	settingsModuleCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	settingsModuleCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	settingsModuleCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	settingsModuleCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
+
 	settingsModuleSettingCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleSettingCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	settingsModuleSettingCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	settingsModuleSettingCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	settingsModuleSettingCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	settingsModuleSettingCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
+
 	settingsModuleSettingsCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	settingsModuleSettingsCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	settingsModuleSettingsCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	settingsModuleSettingsCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	settingsModuleSettingsCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	settingsModuleSettingsCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
 
 	rootCmd.AddCommand(settingsCmd)
 	settingsCmd.AddCommand(settingsListCmd)
@@ -89,6 +106,8 @@ var settingsModuleSettingsCmd = &cobra.Command{
 
 // listSettings prints a (huge) list of module ids with their corresponding setting ids
 func listSettings() {
+	var errOut io.Writer = os.Stderr
+
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
 		Server:   authData.Server,
@@ -99,14 +118,14 @@ func listSettings() {
 	defer lib.Logout()
 
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 
 	settings, err := lib.Settings()
 
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 	for _, s := range settings {
@@ -120,12 +139,13 @@ func listSettings() {
 
 // getSettingsModule takes a module id as argument and prints setting ids and their current values
 func getSettingsModule(args []string) {
+	var errOut io.Writer = os.Stderr
 
 	if len(args) < 1 {
-		fmt.Println("Please submit a moduleid.")
+		fmt.Fprintln(errOut, "Please submit a moduleid.")
 		return
 	} else if len(args) > 1 {
-		fmt.Println("Please submit only one moduleid.")
+		fmt.Fprintln(errOut, "Please submit only one moduleid.")
 		return
 	}
 
@@ -139,7 +159,7 @@ func getSettingsModule(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -147,20 +167,21 @@ func getSettingsModule(args []string) {
 	values, err := lib.SettingsModule(moduleId)
 
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
-	writeSettingValues(values)
+	writeSettingsValues(values)
 }
 
 // getSettingsModuleSetting takes a module id and a setting id as arguments and prints setting ids and their current value
 func getSettingsModuleSetting(args []string) {
+	var errOut io.Writer = os.Stderr
 
 	if len(args) < 2 {
-		fmt.Println("Please submit a moduleid and a settingid.")
+		fmt.Fprintln(errOut, "Please submit a moduleid and a settingid.")
 		return
 	} else if len(args) > 2 {
-		fmt.Println("Please submit only one moduleid with its settingid.")
+		fmt.Fprintln(errOut, "Please submit only one moduleid with its settingid.")
 		return
 	}
 
@@ -175,7 +196,7 @@ func getSettingsModuleSetting(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -183,23 +204,23 @@ func getSettingsModuleSetting(args []string) {
 	values, err := lib.SettingsModuleSetting(moduleId, settingId)
 
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 
-	writeSettingValues(values)
+	writeSettingsValues(values)
 
 }
 
 // getSettingsModuleSettings takes a module id and one or more setting ids as arguments and prints setting ids and their current value
 func getSettingsModuleSettings(args []string) {
+	var errOut io.Writer = os.Stderr
 
 	if len(args) < 2 {
-		fmt.Println("Please submit a moduleid and one or more settingids")
+		fmt.Fprintln(errOut, "Please submit a moduleid and one or more settingids")
 		return
 	}
 
-	//settingIds := strings.Split(args[1], ",")
 	settingIds := args[1:]
 	moduleId := args[0]
 
@@ -211,7 +232,7 @@ func getSettingsModuleSettings(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -219,27 +240,58 @@ func getSettingsModuleSettings(args []string) {
 	values, err := lib.SettingsModuleSettings(moduleId, settingIds...)
 
 	if err != nil {
-		fmt.Println("An error occurred:", err)
+		fmt.Fprintln(errOut, "An error occurred:", err)
 		return
 	}
-	writeSettingValues(values)
+	writeSettingsValues(values)
 
 }
 
 // writeSettingValues is a helper function to print a slice of setting ids and their value
-func writeSettingValues(values []golrackpi.SettingsValues) {
+func writeSettingsValues(values []golrackpi.SettingsValues) {
+
+	var errOut io.Writer = os.Stderr
+	var w io.Writer
+
+	f, errFile := getOutFile()
+	if errFile != nil {
+		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+		return
+	}
+	if f != nil {
+		w = f
+		defer closeOutFile(f)
+	} else {
+		w = os.Stdout
+	}
 
 	if outputCSV {
-		fmt.Printf("Id%sValue\n", delimiter)
-		for _, v := range values {
-			fmt.Printf("%s%s%s\n", v.Id, delimiter, v.Value)
+		if !outputNoHeaders {
+			if outputTimestamp {
+				fmt.Fprintf(w, "Timestamp%s", delimiter)
+			}
+			fmt.Fprintf(w, "Id%sValue\n", delimiter)
 		}
-	} else {
-		fmt.Println("Id\tValue")
 		for _, v := range values {
-			fmt.Printf("%s\t%s\n", v.Id, v.Value)
+			if outputTimestamp {
+				fmt.Fprintf(w, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+			}
+			fmt.Fprintf(w, "%s%s%s\n", v.Id, delimiter, v.Value)
 		}
 
+	} else {
+		if outputTimestamp {
+			fmt.Fprintf(w, "Timestamp\t")
+		}
+		fmt.Fprintln(w, "Id\tValue")
+		for _, v := range values {
+			if outputTimestamp {
+				fmt.Fprintf(w, "%s\t", time.Now().Format(time.RFC3339))
+			}
+			fmt.Fprintf(w, "%s\t%s\n", v.Id, v.Value)
+		}
+
+		fmt.Fprintln(w)
 	}
 
 }

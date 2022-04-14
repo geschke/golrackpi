@@ -18,6 +18,13 @@ import (
 
 func init() {
 
+	processdataModuleCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
+	processdataModuleCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
+	processdataModuleCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
+	processdataModuleCmd.Flags().BoolVarP(&outputTimestamp, "timestamp", "t", false, "Add timestamp to output")
+	processdataModuleCmd.Flags().BoolVarP(&outputAppend, "append", "a", false, "Append output to file (default: overwrite content)")
+	processdataModuleCmd.Flags().BoolVarP(&outputNoHeaders, "no-headers", "", false, "Omit headline in CSV output")
+
 	processdataGetCmd.Flags().BoolVarP(&outputCSV, "csv", "c", false, "Set output to CSV format")
 	processdataGetCmd.Flags().StringVarP(&delimiter, "delimiter", "d", ",", "Set CSV delimiter (default \",\")")
 	processdataGetCmd.Flags().StringVarP(&outputFile, "output-file", "o", "", "Write output to file [filename]")
@@ -34,6 +41,7 @@ func init() {
 
 	rootCmd.AddCommand(processdataCmd)
 	processdataCmd.AddCommand(processdataListCmd)
+	processdataCmd.AddCommand(processdataModuleCmd)
 	processdataCmd.AddCommand(processdataMultCmd)
 	processdataCmd.AddCommand(processdataGetCmd)
 
@@ -59,6 +67,18 @@ var processdataListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command,
 		args []string) {
 		listProcessdata()
+	},
+}
+
+var processdataModuleCmd = &cobra.Command{
+	Use: "module [moduleid]",
+
+	Short: "Get all processdata values of the specified moduleid",
+	//Long:  ``,
+	Args: cobra.MinimumNArgs(1),
+	Run: func(cmd *cobra.Command,
+		args []string) {
+		getModuleProcessdata(args)
 	},
 }
 
@@ -302,11 +322,78 @@ func getProcessdata(args []string) {
 	}
 }
 
-/*
-* Handle processdata-related commands
- */
-func handleProcessdata() {
-	fmt.Println("\nUnknown or missing command.\nRun golrackpi processdata --help to show available commands.")
+func getModuleProcessdata(args []string) {
+	var errOut io.Writer = os.Stderr
+	var w io.Writer
+
+	f, errFile := getOutFile()
+	if errFile != nil {
+		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+		return
+	}
+	if f != nil {
+		w = f
+		defer closeOutFile(f)
+	} else {
+		w = os.Stdout
+	}
+	// submitted values: moduleid pdid pdid2 pdid3...
+
+	moduleId := args[0]
+
+	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
+		Scheme:   authData.Scheme,
+		Server:   authData.Server,
+		Password: authData.Password,
+	})
+
+	_, err := lib.Login()
+	if err != nil {
+		fmt.Fprintln(errOut, "An error occurred:", err)
+
+		return
+	}
+	defer lib.Logout()
+
+	processDataValues, err := lib.ProcessDataModule(moduleId)
+	if err != nil {
+		fmt.Fprintln(errOut, "An error occurred:", err)
+		return
+	}
+
+	if outputCSV {
+		if !outputNoHeaders {
+			if outputTimestamp {
+				fmt.Fprintf(w, "Timestamp%s", delimiter)
+			}
+			fmt.Fprintf(w, "Module%sProcessdata Id%sProcessdata Unit%sProcessdata Value\n", delimiter, delimiter, delimiter)
+		}
+		for _, pdv := range processDataValues {
+			for _, pd := range pdv.ProcessData {
+				if outputTimestamp {
+					fmt.Fprintf(w, "%s%s", time.Now().Format(time.RFC3339), delimiter)
+				}
+				fmt.Fprintf(w, "%s%s%s%s%s%s%v\n", pdv.ModuleId, delimiter, pd.Id, delimiter, pd.Unit, delimiter, pd.Value)
+
+			}
+		}
+
+	} else {
+		if outputTimestamp {
+			fmt.Fprintf(w, "Timestamp:\t")
+		}
+		for _, pdv := range processDataValues {
+			if outputTimestamp {
+				fmt.Fprintf(w, "%s\n", time.Now().Format(time.RFC3339))
+			}
+			fmt.Fprintln(w, "Module:", pdv.ModuleId)
+			for _, pd := range pdv.ProcessData {
+				fmt.Fprintln(w, pd.Id, "\t", pd.Unit, "\t", pd.Value)
+			}
+			fmt.Fprintln(w)
+		}
+
+	}
 }
 
 // getOutFile returns a pointer to an opened file if the corresponding flags are set.
@@ -338,4 +425,9 @@ func closeOutFile(f *os.File) {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
 		os.Exit(1)
 	}
+}
+
+// Handle processdata-related commands
+func handleProcessdata() {
+	fmt.Println("\nUnknown or missing command.\nRun golrackpi processdata --help to show available commands.")
 }
