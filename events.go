@@ -25,7 +25,7 @@ type EventData struct {
 	IsActive        bool                 `json:"is_active"`
 }
 
-// EventsCustomized returns the latest events with localized descriptions. It returns a slice of EventData type. It takes as arguments
+// EventsWithParam returns the latest events with localized descriptions. It returns a slice of EventData type. It takes as arguments
 // the language string (currently available de-de, en-gb, es-es, fr-fr, hu-hu, it-it, nl-nl, pl-pl, pt-pt, cs-cz, el-gr and zh-cn) and
 // the maximum number of events (default: 10)
 func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, error) {
@@ -79,7 +79,7 @@ func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, err
 	return jsonResult, nil
 }
 
-// EventsCustomized returns the latest events as slice of EventData type
+// Events returns the latest events as a slice of EventData type
 func (c *AuthClient) Events() ([]EventData, error) {
 	jsonResult := []EventData{}
 

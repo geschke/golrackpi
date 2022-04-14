@@ -13,7 +13,9 @@ import (
 	"net/http"
 )
 
-// ProcessData specifies the structure of the response returned by a request to the "processdata" endpoint
+// ProcessData specifies the structure of the response returned by a request to the "processdata" endpoint.
+// Furthermore this type is used in the ProcessDataValues function to define an arbitrary number of moduleids and
+// also an arbitrary number of their processdataids.
 type ProcessData struct {
 	ModuleId       string   `json:"moduleid"`
 	ProcessDataIds []string `json:"processdataids"`
@@ -99,8 +101,8 @@ func (c *AuthClient) ProcessDataModule(moduleId string) ([]ProcessDataValues, er
 
 }
 
-// ProcessDataModuleValues returns a slice of ProcessDataValues returned by a request of moduleid and one or more of the processdataids which
-// is handled by the module.
+// ProcessDataModuleValues returns a slice of ProcessDataValues returned by a request of a moduleid and one or more of the processdataids which
+// belongs to the moduleid.
 func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...string) ([]ProcessDataValues, error) {
 	processDataValues := []ProcessDataValues{}
 	client := http.Client{}
@@ -141,6 +143,10 @@ func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...
 
 }
 
+// ProcessDataValues returns a slice of ProcessDataValues by a request of an arbitrary number of modules with one or more processdataids
+// according to the moduleid.
+// It takes a slice of ProcessData as argument, so it's possible to submit several moduleids with an arbitrary number of their processdataids
+// and get all processdata values with one request to the inverter.
 func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, error) {
 	processDataValues := []ProcessDataValues{}
 	b, err := json.Marshal(v)
