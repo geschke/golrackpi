@@ -1,5 +1,7 @@
 # golrackpi is a Go (Golang) Library Rest Api Client (for) Kostal Plenticore Inverters (with CLI)
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/geschke/golrackpi.svg)](https://pkg.go.dev/github.com/geschke/golrackpi)
+
 This repository provides a Go (Golang) library for the undocumented REST-API of Kostal Plenticore Inverters. It uses the PIKO IQ / PLENTICORE plus API with its swagger documentation found at "inverter ip address"/api/v1/.
 
 This library is not affiliated with Kostal and is no offical product of KOSTAL Solar Electric GmbH or any subsidiary company of Kostal Gruppe.
