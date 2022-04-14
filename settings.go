@@ -13,6 +13,7 @@ import (
 	"net/http"
 )
 
+// SettingsDataValues specifies the structure of a setting element returned by a request to the "settings" endpoint
 type SettingsDataValues struct {
 	Id      string      `json:"id"`
 	Max     string      `json:"max"`
@@ -23,16 +24,22 @@ type SettingsDataValues struct {
 	Default string      `json:"default"`
 }
 
+// SettingsData specifies the structure of the response returned by a request to the "settings" endpoint.
+// It embeds a slice of SettingsDataValues type.
 type SettingsData struct {
 	ModuleId string               `json:"moduleid"`
 	Settings []SettingsDataValues `json:"settings"`
 }
 
+// SettingsValues specifies the structure of the response returned by a request to the "settings/moduleid/..." endpoint.
+// The structure defines a settingid and its value.
 type SettingsValues struct {
 	Id    string `json:"id"`
 	Value string `json:"value"`
 }
 
+// Settings returns a list of all modules with their setting identifiers and further parameters of the setting, i.e. max, min, default etc.
+// Warning: The request returns a lot of data, so it takes some time.
 func (c *AuthClient) Settings() ([]SettingsData, error) {
 	jsonResult := []SettingsData{}
 	client := http.Client{}
@@ -40,7 +47,6 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 	request, err := http.NewRequest("GET", c.getUrl("/api/v1/settings"), nil)
 	if err != nil {
 		return jsonResult, err
-
 	}
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
@@ -48,8 +54,8 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 	response, errMe := client.Do(request)
 	if errMe != nil {
 		return jsonResult, errMe
-
 	}
+	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -59,13 +65,12 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 	errJson := json.Unmarshal(body, &jsonResult)
 	if errJson != nil {
 		return jsonResult, errJson
-
 	}
 
 	return jsonResult, nil
-
 }
 
+// SettingsModule returns a list of settings with settingids and their values of a moduleid
 func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	jsonResult := []SettingsValues{}
 	client := http.Client{}
@@ -81,10 +86,10 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	if errMe != nil {
 		return jsonResult, errMe
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return jsonResult, errors.New("module or setting not found")
 	}
-	defer response.Body.Close()
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
@@ -99,6 +104,8 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	return jsonResult, nil
 }
 
+// SettingsModuleSetting returns a SettingsValues slice with length 1 according to the submitted
+// moduleid and settingid parameter.
 func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([]SettingsValues, error) {
 	jsonResult := []SettingsValues{}
 	client := http.Client{}
@@ -114,10 +121,10 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 	if errMe != nil {
 		return jsonResult, errMe
 	}
+	defer response.Body.Close()
 	if response.StatusCode != 200 {
 		return jsonResult, errors.New("module or setting not found")
 	}
-	defer response.Body.Close()
 
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
@@ -133,7 +140,9 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 	return jsonResult, nil
 }
 
-func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids []string) ([]SettingsValues, error) {
+// SettingsModuleSettings returns a SettingsValues slice according to the submitted
+// moduleid and settingids parameter. This function takes an arbitrary number of setting ids as arguments.
+func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...string) ([]SettingsValues, error) {
 	jsonResult := []SettingsValues{}
 	client := http.Client{}
 

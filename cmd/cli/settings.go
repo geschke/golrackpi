@@ -9,8 +9,6 @@ import (
 
 	"github.com/geschke/golrackpi"
 	"github.com/spf13/cobra"
-
-	"strings"
 )
 
 func init() {
@@ -197,15 +195,12 @@ func getSettingsModuleSetting(args []string) {
 func getSettingsModuleSettings(args []string) {
 
 	if len(args) < 2 {
-		fmt.Println("Please submit a moduleid and s comma-separated list of settingids.")
-		return
-	} else if len(args) > 2 {
-		fmt.Println("Please submit only one moduleid with its settingids as comma-separated list.")
+		fmt.Println("Please submit a moduleid and one or more settingids")
 		return
 	}
 
-	settingIds := strings.Split(args[1], ",")
-
+	//settingIds := strings.Split(args[1], ",")
+	settingIds := args[1:]
 	moduleId := args[0]
 
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
@@ -221,7 +216,7 @@ func getSettingsModuleSettings(args []string) {
 	}
 	defer lib.Logout()
 
-	values, err := lib.SettingsModuleSettings(moduleId, settingIds)
+	values, err := lib.SettingsModuleSettings(moduleId, settingIds...)
 
 	if err != nil {
 		fmt.Println("An error occurred:", err)

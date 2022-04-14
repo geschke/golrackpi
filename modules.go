@@ -13,8 +13,8 @@ import (
 
 // ModuleData specifies the structure of the response returned by a request to the "modules" endpoint
 type ModuleData struct {
-	Id   string
-	Type string
+	Id   string `json:"id"`
+	Type string `json:"type"`
 }
 
 // Modules returns a list of modules with their type
