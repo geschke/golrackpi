@@ -31,7 +31,7 @@ var (
 	outputNoHeaders bool   = false
 )
 
-// init sets the global flags and their options
+// init sets the global flags and their options.
 func init() {
 	rootCmd.PersistentFlags().StringVarP(&authData.Password, "password", "p", "", "Password (required)")
 	rootCmd.PersistentFlags().StringVarP(&authData.Server, "server", "s", "", "Server (e.g. inverter IP address) (required)")
@@ -41,10 +41,42 @@ func init() {
 
 }
 
+// Exec is the entrypoint of the Cobra CLI library.
 func Exec() {
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		os.Exit(1)
 	}
 
+}
+
+// getOutFile returns a pointer to an opened file if the corresponding flags are set.
+// If the return value is nil, output should be sent to os.Stdout
+func getOutFile() (*os.File, error) {
+	var f *os.File
+	var err error
+	if len(outputFile) > 0 {
+		if outputAppend {
+			f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			f, err = os.Create(outputFile)
+			if err != nil {
+				return nil, err
+			}
+		}
+		return f, nil
+	}
+	return nil, nil
+}
+
+// closeOutFile closes a file and handles errors
+func closeOutFile(f *os.File) {
+	err := f.Close()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "error: %v\n", err)
+		os.Exit(1)
+	}
 }

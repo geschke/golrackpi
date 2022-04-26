@@ -48,9 +48,9 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return processData, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return processData, err
 	}
 	defer response.Body.Close()
 
@@ -59,9 +59,9 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 		return processData, err
 	}
 
-	errJson := json.Unmarshal(body, &processData)
-	if errJson != nil {
-		return processData, errJson
+	err = json.Unmarshal(body, &processData)
+	if err != nil {
+		return processData, err
 	}
 
 	return processData, nil
@@ -81,9 +81,9 @@ func (c *AuthClient) ProcessDataModule(moduleId string) ([]ProcessDataValues, er
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return processDataValues, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return processDataValues, err
 	}
 	defer response.Body.Close()
 
@@ -92,9 +92,9 @@ func (c *AuthClient) ProcessDataModule(moduleId string) ([]ProcessDataValues, er
 		return processDataValues, err
 	}
 
-	errJson := json.Unmarshal(body, &processDataValues)
-	if errJson != nil {
-		return processDataValues, errJson
+	err = json.Unmarshal(body, &processDataValues)
+	if err != nil {
+		return processDataValues, err
 	}
 
 	return processDataValues, nil
@@ -123,9 +123,9 @@ func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return processDataValues, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return processDataValues, err
 	}
 	defer response.Body.Close()
 
@@ -134,9 +134,9 @@ func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...
 		return processDataValues, err
 	}
 
-	errJson := json.Unmarshal(body, &processDataValues)
-	if errJson != nil {
-		return processDataValues, errJson
+	err = json.Unmarshal(body, &processDataValues)
+	if err != nil {
+		return processDataValues, err
 	}
 
 	return processDataValues, nil
@@ -164,9 +164,9 @@ func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, er
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errReq := client.Do(request)
-	if errReq != nil {
-		return processDataValues, errReq
+	response, err := client.Do(request)
+	if err != nil {
+		return processDataValues, err
 	}
 	defer response.Body.Close()
 
@@ -175,9 +175,9 @@ func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, er
 		return processDataValues, err
 	}
 
-	errJson := json.Unmarshal(body, &processDataValues)
-	if errJson != nil {
-		return processDataValues, errJson
+	err = json.Unmarshal(body, &processDataValues)
+	if err != nil {
+		return processDataValues, err
 	}
 
 	return processDataValues, nil

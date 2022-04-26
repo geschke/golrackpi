@@ -24,9 +24,9 @@ func (c *AuthClient) Version() (map[string]interface{}, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return result, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return result, err
 
 	}
 
@@ -37,9 +37,9 @@ func (c *AuthClient) Version() (map[string]interface{}, error) {
 	defer response.Body.Close()
 
 	var jsonResult interface{}
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return result, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return result, err
 	}
 
 	m, mOk := jsonResult.(map[string]interface{})

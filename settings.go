@@ -51,9 +51,9 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return jsonResult, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
 	}
 	defer response.Body.Close()
 
@@ -62,9 +62,9 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 	}
 
 	return jsonResult, nil
@@ -82,9 +82,9 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return jsonResult, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
@@ -95,9 +95,9 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 
 	}
 
@@ -117,9 +117,9 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return jsonResult, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
@@ -131,9 +131,9 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 
 	}
 
@@ -158,9 +158,9 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...strin
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return jsonResult, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
 	}
 	defer response.Body.Close()
 	if response.StatusCode != 200 {
@@ -172,9 +172,9 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...strin
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 
 	}
 

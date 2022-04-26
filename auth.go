@@ -185,9 +185,9 @@ func (c *AuthClient) Login() (string, error) {
 
 	finishRequestBody, _ := json.Marshal(finishRequest)
 
-	respFinish, errFinish := http.Post(c.getUrl(endpointAuthFinish), "application/json", bytes.NewBuffer(finishRequestBody))
+	respFinish, err := http.Post(c.getUrl(endpointAuthFinish), "application/json", bytes.NewBuffer(finishRequestBody))
 
-	if errFinish != nil {
+	if err != nil {
 		return "", errors.New("could not initiate authentication finish request")
 	}
 	if respFinish.StatusCode != 200 {
@@ -196,8 +196,8 @@ func (c *AuthClient) Login() (string, error) {
 
 	defer respFinish.Body.Close()
 
-	responseFinishBody, errFinishBody := ioutil.ReadAll(respFinish.Body)
-	if errFinishBody != nil {
+	responseFinishBody, err := ioutil.ReadAll(respFinish.Body)
+	if err != nil {
 		//Failed to read response.
 		return "", errors.New("could not read from authentication finish request")
 	}
@@ -264,9 +264,9 @@ func (c *AuthClient) Login() (string, error) {
 
 	createSessionRequestBody, _ := json.Marshal(createSessionRequest)
 
-	respCreateSession, errCreateSession := http.Post(c.getUrl(endpointAuthCreateSession), "application/json", bytes.NewBuffer(createSessionRequestBody))
+	respCreateSession, err := http.Post(c.getUrl(endpointAuthCreateSession), "application/json", bytes.NewBuffer(createSessionRequestBody))
 
-	if errCreateSession != nil {
+	if err != nil {
 		return "", errors.New("could not create session")
 
 	}
@@ -275,8 +275,8 @@ func (c *AuthClient) Login() (string, error) {
 	}
 	defer respCreateSession.Body.Close()
 
-	responseCreateSessionBody, errCreateSessionBody := ioutil.ReadAll(respCreateSession.Body)
-	if errCreateSessionBody != nil {
+	responseCreateSessionBody, err := ioutil.ReadAll(respCreateSession.Body)
+	if err != nil {
 		return "", errors.New("could not read from create session request")
 	}
 
@@ -307,8 +307,8 @@ func (c *AuthClient) Logout() (bool, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errReq := client.Do(request)
-	if errReq != nil || response.StatusCode != 200 {
+	response, err := client.Do(request)
+	if err != nil || response.StatusCode != 200 {
 		return false, errors.New("logout error")
 	}
 	defer response.Body.Close()
@@ -331,9 +331,9 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return result, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return result, err
 	}
 	defer response.Body.Close()
 
@@ -341,9 +341,9 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 	if err != nil {
 	}
 	var jsonResult interface{}
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return result, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return result, err
 	}
 
 	m, mOk := jsonResult.(map[string]interface{})

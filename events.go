@@ -61,8 +61,8 @@ func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, err
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errReq := client.Do(request)
-	if errReq != nil {
+	response, err := client.Do(request)
+	if err != nil {
 		return jsonResult, err
 	}
 	defer response.Body.Close()
@@ -72,9 +72,9 @@ func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, err
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 	}
 	return jsonResult, nil
 }
@@ -92,9 +92,9 @@ func (c *AuthClient) Events() ([]EventData, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return jsonResult, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
 	}
 	defer response.Body.Close()
 
@@ -103,9 +103,9 @@ func (c *AuthClient) Events() ([]EventData, error) {
 		return jsonResult, err
 	}
 
-	errJson := json.Unmarshal(body, &jsonResult)
-	if errJson != nil {
-		return jsonResult, errJson
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
 	}
 
 	return jsonResult, nil

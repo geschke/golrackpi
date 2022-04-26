@@ -28,9 +28,9 @@ func (m *InverterTime) UnmarshalJSON(data []byte) error {
 	if err != nil {
 		// Append "Z" to data string
 		s := strings.TrimRight(string(data), "\"") + "Z\""
-		tt2, err2 := time.Parse(`"`+time.RFC3339+`"`, s)
+		tt2, err := time.Parse(`"`+time.RFC3339+`"`, s)
 		*m = InverterTime{tt2}
-		return err2
+		return err
 	} else {
 		*m = InverterTime{tt}
 		return err

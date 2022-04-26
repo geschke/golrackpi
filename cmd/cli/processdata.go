@@ -146,12 +146,12 @@ func getMultProcessdata(args []string) {
 
 	// check format of submitted arguments
 	var requestProcessData []golrackpi.ProcessData
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 	var w io.Writer
 
-	f, errFile := getOutFile()
-	if errFile != nil {
-		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+	f, err := getOutFile()
+	if err != nil {
+		fmt.Fprintln(outErr, "Could not open file ", outputFile)
 		return
 	}
 	if f != nil {
@@ -165,7 +165,7 @@ func getMultProcessdata(args []string) {
 		for _, argModuleProcessdata := range args {
 			moduleProcessdata := strings.Split(argModuleProcessdata, "|")
 			if len(moduleProcessdata) != 2 {
-				fmt.Fprintln(errOut, "Wrong format of moduleid and processdataid values.")
+				fmt.Fprintln(outErr, "Wrong format of moduleid and processdataid values.")
 				return
 			}
 			argModuleId := moduleProcessdata[0]
@@ -180,14 +180,14 @@ func getMultProcessdata(args []string) {
 		processdataIds := strings.Split(args[1], ",")
 
 		if len(moduleIds) > 1 {
-			fmt.Fprintln(errOut, "Please enter only one moduleid.")
+			fmt.Fprintln(outErr, "Please enter only one moduleid.")
 			return
 		}
 		v := golrackpi.ProcessData{ModuleId: moduleIds[0], ProcessDataIds: processdataIds}
 		requestProcessData = append(requestProcessData, v)
 
 	} else {
-		fmt.Fprintln(errOut, "Please submit module and processdata in an appropriate format.")
+		fmt.Fprintln(outErr, "Please submit module and processdata in an appropriate format.")
 		return
 	}
 
@@ -197,9 +197,9 @@ func getMultProcessdata(args []string) {
 		Password: authData.Password,
 	})
 
-	_, err := lib.Login()
+	_, err = lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 
 		return
 	}
@@ -207,7 +207,7 @@ func getMultProcessdata(args []string) {
 
 	processDataValues, err := lib.ProcessDataValues(requestProcessData)
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 
@@ -248,12 +248,12 @@ func getMultProcessdata(args []string) {
 }
 
 func getProcessdata(args []string) {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 	var w io.Writer
 
-	f, errFile := getOutFile()
-	if errFile != nil {
-		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+	f, err := getOutFile()
+	if err != nil {
+		fmt.Fprintln(outErr, "Could not open file ", outputFile)
 		return
 	}
 	if f != nil {
@@ -273,9 +273,9 @@ func getProcessdata(args []string) {
 		Password: authData.Password,
 	})
 
-	_, err := lib.Login()
+	_, err = lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 
 		return
 	}
@@ -283,7 +283,7 @@ func getProcessdata(args []string) {
 
 	processDataValues, err := lib.ProcessDataModuleValues(moduleId, processDataIds...)
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 
@@ -323,12 +323,12 @@ func getProcessdata(args []string) {
 }
 
 func getModuleProcessdata(args []string) {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 	var w io.Writer
 
-	f, errFile := getOutFile()
-	if errFile != nil {
-		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+	f, err := getOutFile()
+	if err != nil {
+		fmt.Fprintln(outErr, "Could not open file ", outputFile)
 		return
 	}
 	if f != nil {
@@ -347,9 +347,9 @@ func getModuleProcessdata(args []string) {
 		Password: authData.Password,
 	})
 
-	_, err := lib.Login()
+	_, err = lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 
 		return
 	}
@@ -357,7 +357,7 @@ func getModuleProcessdata(args []string) {
 
 	processDataValues, err := lib.ProcessDataModule(moduleId)
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 
@@ -393,37 +393,6 @@ func getModuleProcessdata(args []string) {
 			fmt.Fprintln(w)
 		}
 
-	}
-}
-
-// getOutFile returns a pointer to an opened file if the corresponding flags are set.
-// If the return value is nil, output should be sent to os.Stdout
-func getOutFile() (*os.File, error) {
-	var f *os.File
-	var err error
-	if len(outputFile) > 0 {
-		if outputAppend {
-			f, err = os.OpenFile(outputFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-			if err != nil {
-				return nil, err
-			}
-		} else {
-			f, err = os.Create(outputFile)
-			if err != nil {
-				return nil, err
-			}
-		}
-		return f, nil
-	}
-	return nil, nil
-}
-
-// closeOutFile closes the file and handles errors
-func closeOutFile(f *os.File) {
-	err := f.Close()
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "error: %v\n", err)
-		os.Exit(1)
 	}
 }
 

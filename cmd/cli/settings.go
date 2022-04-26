@@ -106,7 +106,7 @@ var settingsModuleSettingsCmd = &cobra.Command{
 
 // listSettings prints a (huge) list of module ids with their corresponding setting ids
 func listSettings() {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 
 	lib := golrackpi.NewWithParameter(golrackpi.AuthClient{
 		Scheme:   authData.Scheme,
@@ -118,14 +118,14 @@ func listSettings() {
 	defer lib.Logout()
 
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 
 	settings, err := lib.Settings()
 
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	for _, s := range settings {
@@ -139,13 +139,13 @@ func listSettings() {
 
 // getSettingsModule takes a module id as argument and prints setting ids and their current values
 func getSettingsModule(args []string) {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 
 	if len(args) < 1 {
-		fmt.Fprintln(errOut, "Please submit a moduleid.")
+		fmt.Fprintln(outErr, "Please submit a moduleid.")
 		return
 	} else if len(args) > 1 {
-		fmt.Fprintln(errOut, "Please submit only one moduleid.")
+		fmt.Fprintln(outErr, "Please submit only one moduleid.")
 		return
 	}
 
@@ -159,7 +159,7 @@ func getSettingsModule(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -167,7 +167,7 @@ func getSettingsModule(args []string) {
 	values, err := lib.SettingsModule(moduleId)
 
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	writeSettingsValues(values)
@@ -175,13 +175,13 @@ func getSettingsModule(args []string) {
 
 // getSettingsModuleSetting takes a module id and a setting id as arguments and prints setting ids and their current value
 func getSettingsModuleSetting(args []string) {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 
 	if len(args) < 2 {
-		fmt.Fprintln(errOut, "Please submit a moduleid and a settingid.")
+		fmt.Fprintln(outErr, "Please submit a moduleid and a settingid.")
 		return
 	} else if len(args) > 2 {
-		fmt.Fprintln(errOut, "Please submit only one moduleid with its settingid.")
+		fmt.Fprintln(outErr, "Please submit only one moduleid with its settingid.")
 		return
 	}
 
@@ -196,7 +196,7 @@ func getSettingsModuleSetting(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -204,7 +204,7 @@ func getSettingsModuleSetting(args []string) {
 	values, err := lib.SettingsModuleSetting(moduleId, settingId)
 
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 
@@ -214,10 +214,10 @@ func getSettingsModuleSetting(args []string) {
 
 // getSettingsModuleSettings takes a module id and one or more setting ids as arguments and prints setting ids and their current value
 func getSettingsModuleSettings(args []string) {
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 
 	if len(args) < 2 {
-		fmt.Fprintln(errOut, "Please submit a moduleid and one or more settingids")
+		fmt.Fprintln(outErr, "Please submit a moduleid and one or more settingids")
 		return
 	}
 
@@ -232,7 +232,7 @@ func getSettingsModuleSettings(args []string) {
 
 	_, err := lib.Login()
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	defer lib.Logout()
@@ -240,7 +240,7 @@ func getSettingsModuleSettings(args []string) {
 	values, err := lib.SettingsModuleSettings(moduleId, settingIds...)
 
 	if err != nil {
-		fmt.Fprintln(errOut, "An error occurred:", err)
+		fmt.Fprintln(outErr, "An error occurred:", err)
 		return
 	}
 	writeSettingsValues(values)
@@ -250,12 +250,12 @@ func getSettingsModuleSettings(args []string) {
 // writeSettingValues is a helper function to print a slice of setting ids and their value
 func writeSettingsValues(values []golrackpi.SettingsValues) {
 
-	var errOut io.Writer = os.Stderr
+	var outErr io.Writer = os.Stderr
 	var w io.Writer
 
-	f, errFile := getOutFile()
-	if errFile != nil {
-		fmt.Fprintln(errOut, "Could not open file ", outputFile)
+	f, err := getOutFile()
+	if err != nil {
+		fmt.Fprintln(outErr, "Could not open file ", outputFile)
 		return
 	}
 	if f != nil {

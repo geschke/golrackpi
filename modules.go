@@ -29,9 +29,9 @@ func (c *AuthClient) Modules() ([]ModuleData, error) {
 
 	request.Header.Add("authorization", "Session "+c.SessionId)
 
-	response, errMe := client.Do(request)
-	if errMe != nil {
-		return moduleData, errMe
+	response, err := client.Do(request)
+	if err != nil {
+		return moduleData, err
 	}
 	defer response.Body.Close()
 
@@ -40,9 +40,9 @@ func (c *AuthClient) Modules() ([]ModuleData, error) {
 		return moduleData, err
 
 	}
-	errJson := json.Unmarshal(body, &moduleData)
-	if errJson != nil {
-		return moduleData, errJson
+	err = json.Unmarshal(body, &moduleData)
+	if err != nil {
+		return moduleData, err
 
 	}
 
