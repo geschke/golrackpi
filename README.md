@@ -68,6 +68,15 @@ Use "golrackpi [command] --help" for more information about a command.
 ## Documentation
 
 ...todo...
+## Write settings
+
+Available settings can be found in the swagger documentation of the inverter or by calling `client.Settings()``. The following example shows how to activate smart battery control:
+
+```go
+  module := golrackpi.ModuleSettings{ModuleId: "devices:local"}
+  module.Settings = []golrackpi.SettingsValues{golrackpi.SettingsValues{Id: "Battery:SmartBatteryControl:Enable", Value: "0"}}
+  client.UpdateSettings([]golrackpi.ModuleSettings{module})
+```
 
 ## License
 
