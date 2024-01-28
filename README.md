@@ -9,7 +9,7 @@ This library is not affiliated with Kostal and is no offical product of KOSTAL S
 ## Features
 
 * Authenticate (Login, Logout, Check authentication)
-* Read settings
+* Read/Write settings
 * Read processdata
 * Read events
 
