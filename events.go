@@ -7,7 +7,8 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
+
 	"net/http"
 
 	"github.com/geschke/golrackpi/internal/timefix"
@@ -67,7 +68,7 @@ func (c *AuthClient) EventsWithParam(language string, max int) ([]EventData, err
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -98,7 +99,7 @@ func (c *AuthClient) Events() ([]EventData, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}

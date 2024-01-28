@@ -5,11 +5,13 @@
 package golrackpi
 
 import (
+	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 
 	"errors"
-	"io/ioutil"
+
 	"net/http"
 )
 
@@ -57,7 +59,7 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -90,7 +92,7 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	if response.StatusCode != 200 {
 		return jsonResult, errors.New("module or setting not found")
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -126,7 +128,7 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 		return jsonResult, errors.New("module or setting not found")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -167,7 +169,7 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...strin
 		return jsonResult, errors.New("module or setting not found")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -179,4 +181,52 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...strin
 	}
 
 	return jsonResult, nil
+}
+
+// ModuleSettings specifies the structure of the request body for the "settings" endpoint.
+type ModuleSettings struct {
+	Settings []SettingsValues `json:"settings"`
+	ModuleId string           `json:"moduleid"`
+}
+
+// write settings
+func (c *AuthClient) UpdateSettings(settings []ModuleSettings) ([]ModuleSettings, error) {
+	jsonResult := []ModuleSettings{}
+	jsonPayload, err := json.Marshal(settings)
+
+	if err != nil {
+		return jsonResult, err
+	}
+
+	client := http.Client{}
+	request, err := http.NewRequest("PUT", c.getUrl("/api/v1/settings"), bytes.NewBuffer(jsonPayload))
+	if err != nil {
+		return jsonResult, err
+	}
+
+	request.Header.Add("authorization", "Session "+c.SessionId)
+	request.Header.Add("Content-Type", "application/json")
+
+	response, err := client.Do(request)
+	if err != nil {
+		return jsonResult, err
+	}
+	defer response.Body.Close()
+
+	if response.StatusCode != 200 {
+		return jsonResult, err
+	}
+
+	body, err := io.ReadAll(response.Body) // response body is []byte
+	if err != nil {
+		return jsonResult, err
+	}
+
+	err = json.Unmarshal(body, &jsonResult)
+	if err != nil {
+		return jsonResult, err
+
+	}
+
+	return jsonResult, err
 }

@@ -10,12 +10,12 @@ import (
 	"crypto/cipher"
 	"crypto/hmac"
 	"errors"
+	"io"
 
 	"crypto/sha256"
 	b64 "encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 
 	"github.com/geschke/golrackpi/internal/helper"
 
@@ -136,7 +136,7 @@ func (c *AuthClient) Login() (string, error) {
 		return "", errors.New("request returned with http error " + resp.Status)
 	}
 
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", errors.New("could not read authentication response")
 	}
@@ -196,7 +196,7 @@ func (c *AuthClient) Login() (string, error) {
 
 	defer respFinish.Body.Close()
 
-	responseFinishBody, err := ioutil.ReadAll(respFinish.Body)
+	responseFinishBody, err := io.ReadAll(respFinish.Body)
 	if err != nil {
 		//Failed to read response.
 		return "", errors.New("could not read from authentication finish request")
@@ -275,7 +275,7 @@ func (c *AuthClient) Login() (string, error) {
 	}
 	defer respCreateSession.Body.Close()
 
-	responseCreateSessionBody, err := ioutil.ReadAll(respCreateSession.Body)
+	responseCreateSessionBody, err := io.ReadAll(respCreateSession.Body)
 	if err != nil {
 		return "", errors.New("could not read from create session request")
 	}
@@ -337,7 +337,7 @@ func (c *AuthClient) Me() (map[string]interface{}, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 	}
 	var jsonResult interface{}

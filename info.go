@@ -7,8 +7,8 @@ package golrackpi
 import (
 	"encoding/json"
 	"errors"
+	"io"
 
-	"io/ioutil"
 	"net/http"
 )
 
@@ -30,7 +30,7 @@ func (c *AuthClient) Version() (map[string]interface{}, error) {
 
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return result, err
 	}
