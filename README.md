@@ -74,7 +74,7 @@ Available settings can be found in the swagger documentation of the inverter or 
 
 ```go
   module := golrackpi.ModuleSettings{ModuleId: "devices:local"}
-  module.Settings = []golrackpi.SettingsValues{golrackpi.SettingsValues{Id: "Battery:SmartBatteryControl:Enable", Value: "0"}}
+  module.Settings = []golrackpi.SettingsValues{golrackpi.SettingsValues{Id: "Battery:SmartBatteryControl:Enable", Value: "1"}}
   client.UpdateSettings([]golrackpi.ModuleSettings{module})
 ```
 
