@@ -7,10 +7,11 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 
 	"errors"
-	"io/ioutil"
+
 	"net/http"
 )
 
@@ -58,7 +59,7 @@ func (c *AuthClient) Settings() ([]SettingsData, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -91,7 +92,7 @@ func (c *AuthClient) SettingsModule(moduleid string) ([]SettingsValues, error) {
 	if response.StatusCode != 200 {
 		return jsonResult, errors.New("module or setting not found")
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -127,7 +128,7 @@ func (c *AuthClient) SettingsModuleSetting(moduleid string, settingid string) ([
 		return jsonResult, errors.New("module or setting not found")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -168,7 +169,7 @@ func (c *AuthClient) SettingsModuleSettings(moduleid string, settingids ...strin
 		return jsonResult, errors.New("module or setting not found")
 	}
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return jsonResult, err
 	}
@@ -216,7 +217,7 @@ func (c *AuthClient) UpdateSettings(settings []ModuleSettings) ([]ModuleSettings
 		return jsonResult, err
 	}
 
-	body, err := ioutil.ReadAll(response.Body) // response body is []byte
+	body, err := io.ReadAll(response.Body) // response body is []byte
 	if err != nil {
 		return jsonResult, err
 	}

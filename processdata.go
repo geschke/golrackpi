@@ -7,9 +7,9 @@ package golrackpi
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"strings"
 
-	"io/ioutil"
 	"net/http"
 )
 
@@ -54,7 +54,7 @@ func (c *AuthClient) ProcessData() ([]ProcessData, error) {
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return processData, err
 	}
@@ -87,7 +87,7 @@ func (c *AuthClient) ProcessDataModule(moduleId string) ([]ProcessDataValues, er
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return processDataValues, err
 	}
@@ -129,7 +129,7 @@ func (c *AuthClient) ProcessDataModuleValues(moduleId string, processDataIds ...
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return processDataValues, err
 	}
@@ -170,7 +170,7 @@ func (c *AuthClient) ProcessDataValues(v []ProcessData) ([]ProcessDataValues, er
 	}
 	defer response.Body.Close()
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	if err != nil {
 		return processDataValues, err
 	}
